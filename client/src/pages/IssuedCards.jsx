@@ -125,14 +125,14 @@ const IssuedCards = () => {
 
       {!loading && students.length === 0 && (
         <div style={{textAlign: 'center', marginTop: 60, opacity: 0.6}}>
-          <div style={{fontSize: '3rem', marginBottom: 10}}>📭</div>
+          <div style={{fontSize: '3rem', marginBottom: 10}}></div>
           <p>Nenhuma carteirinha emitida ainda.</p>
         </div>
       )}
 
       {!loading && students.length > 0 && filteredStudents.length === 0 && (
         <div style={{textAlign: 'center', marginTop: 60, opacity: 0.6}}>
-          <div style={{fontSize: '2rem', marginBottom: 10}}>🤔</div>
+          <div style={{fontSize: '2rem', marginBottom: 10}}></div>
           <p>Nenhum aluno encontrado para "<strong>{searchTerm}</strong>"</p>
         </div>
       )}

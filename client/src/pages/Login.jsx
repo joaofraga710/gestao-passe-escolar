@@ -12,12 +12,30 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const success = login(username, password);
-    if (success) {
-      navigate('/pendentes');
-    } else {
-      setError('Credenciais inválidas.');
+    
+    // Validação básica no cliente
+    if (!username.trim() || !password.trim()) {
+      setError('Usuário e senha são obrigatórios.');
+      return;
     }
+    
+    if (username.length < 3) {
+      setError('Usuário deve ter pelo menos 3 caracteres.');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError('Senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    login(username, password).then((success) => {
+      if (success) {
+        navigate('/pendentes');
+      } else {
+        setError('Credenciais inválidas.');
+      }
+    });
   };
 
   return (

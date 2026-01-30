@@ -73,8 +73,22 @@ const PendingCards = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(API_URL)
-      .then(res => res.json())
+    
+    // Obter token do sessionStorage
+    const token = sessionStorage.getItem('school_token');
+    
+    fetch(`${API_URL}/api/students`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (!Array.isArray(data)) throw new Error('Dados inválidos');
 
@@ -119,7 +133,7 @@ const PendingCards = () => {
         setLoading(false);
       })
       .catch(err => {
-        console.error(err);
+        console.error('Erro ao buscar estudantes:', err);
         setLoading(false);
       });
   }, []);
