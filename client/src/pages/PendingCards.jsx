@@ -38,6 +38,7 @@ const PendingCards = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Carregando carteirinhas...');
   const [searchTerm, setSearchTerm] = useState('');
 
   const API_URL = import.meta.env.VITE_API_URL; 
@@ -71,24 +72,56 @@ const PendingCards = () => {
     return `https://wsrv.nl/?url=${encodeURIComponent(`https://drive.google.com/uc?export=view&id=${idMatch[0]}`)}&w=400&q=80&output=webp`;
   };
 
+  // Função com retry para lidar com cold start do Render
+  const fetchWithRetry = async (url, options, retries = 3, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+        
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeout);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response;
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        console.log(`Tentativa ${i + 1} falhou, tentando novamente em ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
+    setLoadingMessage('Carregando carteirinhas...');
+    
+    // Atualizar mensagem após 3 segundos (cold start do Render)
+    const timer1 = setTimeout(() => {
+      if (loading) setLoadingMessage('Aguarde, servidor iniciando... (pode levar até 30s)');
+    }, 3000);
+    
+    const timer2 = setTimeout(() => {
+      if (loading) setLoadingMessage('Ainda carregando... Quase lá!');
+    }, 15000);
     
     // Obter token do sessionStorage
     const token = sessionStorage.getItem('school_token');
     
-    fetch(`${API_URL}/api/students`, {
+    fetchWithRetry(`${API_URL}/api/students`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
         if (!Array.isArray(data)) throw new Error('Dados inválidos');
 
@@ -131,11 +164,21 @@ const PendingCards = () => {
         const pendingOnly = formattedData.filter(student => !issuedList.includes(String(student.id)));
         setStudents(pendingOnly);
         setLoading(false);
+        clearTimeout(timer1);
+        clearTimeout(timer2);
       })
       .catch(err => {
         console.error('Erro ao buscar estudantes:', err);
         setLoading(false);
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        alert('Erro ao carregar carteirinhas. Tente novamente.');
       });
+      
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
   }, []);
 
   const handleLinkClick = (e) => {
@@ -191,7 +234,14 @@ const PendingCards = () => {
         />
       </div>
 
-      {loading && <div style={{textAlign:'center', marginTop:40, opacity:0.6}}>Carregando...</div>}
+      {loading && (
+        <div style={{textAlign:'center', marginTop:40}}>
+          <div style={{opacity:0.6, marginBottom:10}}>{loadingMessage}</div>
+          {loadingMessage.includes('servidor') && (
+            <small style={{opacity:0.5, fontSize:12}}>⏳ Servidor gratuito iniciando (pode levar até 30s)</small>
+          )}
+        </div>
+      )}
       
       {!loading && filteredStudents.length === 0 && students.length > 0 && (
           <div style={{textAlign:'center', marginTop:40, opacity:0.6}}>Nenhum aluno encontrado para "{searchTerm}".</div>
