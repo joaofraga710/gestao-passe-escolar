@@ -115,14 +115,23 @@ const PendingCards = () => {
     // Obter token do sessionStorage
     const token = sessionStorage.getItem('school_token');
     
-    fetchWithRetry(`${API_URL}/api/students`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
+    // Buscar carteirinhas já emitidas primeiro
+    Promise.all([
+      fetchWithRetry(`${API_URL}/api/students`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }),
+      fetchWithRetry(`${API_URL}/api/students/issued`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    ])
+      .then(([studentsRes, issuedRes]) => Promise.all([studentsRes.json(), issuedRes.json()]))
+      .then(([data, issuedIds]) => {
         if (!Array.isArray(data)) throw new Error('Dados inválidos');
 
         const formattedData = data.map((item, index) => {
@@ -160,8 +169,9 @@ const PendingCards = () => {
             };
         });
 
-        const issuedList = JSON.parse(localStorage.getItem('issuedCards') || '[]');
-        const pendingOnly = formattedData.filter(student => !issuedList.includes(String(student.id)));
+        // Filtrar carteirinhas que já foram emitidas (do Supabase)
+        const issuedIdsSet = new Set(issuedIds.map(String));
+        const pendingOnly = formattedData.filter(student => !issuedIdsSet.has(String(student.id)));
         setStudents(pendingOnly);
         setLoading(false);
         clearTimeout(timer1);
