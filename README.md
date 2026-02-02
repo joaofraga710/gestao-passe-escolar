@@ -1,8 +1,8 @@
-# School Transport System 🚌
+# School Transport System 
 
 Sistema de gestão de carteirinhas escolares com autenticação segura.
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 school-transport-system/
@@ -26,7 +26,7 @@ school-transport-system/
 └── SECURITY_CHECKLIST.md      # Checklist de segurança
 ```
 
-## 🚀 Começar Rápido
+## Começar Rápido
 
 ### Backend
 
@@ -48,20 +48,20 @@ npm run dev
 
 Aplicação rodará em: `http://localhost:5173`
 
-## 🔐 Login Padrão
+## Login Padrão
 
 - **Usuário:** `admin`
 - **Senha:** `admin123`
 
-> ⚠️ Altere essas credenciais em produção!
+> Altere essas credenciais em produção!
 
-## 📚 Documentação
+## Documentação
 
 - [Autenticação](./server/AUTHENTICATION.md) - Fluxo de login e criação de usuários
 - [Checklist de Segurança](./SECURITY_CHECKLIST.md) - Itens críticos para produção
 - [API Documentation](./docs/API_Documentation.md) - Endpoints da API
 
-## 🔧 Tecnologias
+## Tecnologias
 
 **Frontend:**
 - React 19
@@ -92,14 +92,14 @@ CORS_ORIGIN=http://localhost:5173
 VITE_API_URL=http://localhost:3000
 ```
 
-## 🤝 Contribuindo
+## Contribuindo
 
 1. Crie uma branch para sua feature: `git checkout -b feature/MinhaFeature`
 2. Commit suas mudanças: `git commit -m 'Add MinhaFeature'`
 3. Push para a branch: `git push origin feature/MinhaFeature`
 4. Abra um Pull Request
 
-## 📄 Licença
+## Licença
 
 MIT
 
