@@ -76,7 +76,7 @@ Aplicação rodará em: `http://localhost:5173`
 - bcryptjs (Hash de senhas)
 - express-rate-limit (Rate limiting)
 
-## 📝 Variáveis de Ambiente
+## Variáveis de Ambiente
 
 ### Server (.env)
 ```
