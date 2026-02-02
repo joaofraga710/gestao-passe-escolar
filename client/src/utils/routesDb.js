@@ -13,7 +13,7 @@ export const BUS_ROUTES_DB = [
       "21 de abril",
       "Courhasa",
       "Presidente",
-      "EMEF Prof Clelia de Moraes",
+      "EMEF Prof. Clelia de Moraes",
       "Riviera", 
       "Ipiranga", 
       "Nordeste",
@@ -34,7 +34,7 @@ export const BUS_ROUTES_DB = [
       "Nova Nordeste",
       "EMEI Vó Rosa",
       "EMEF Norberto Martinho Cardoso",
-      "EMEF Prof Clelia de Moraes",
+      "EMEF Prof. Clelia de Moraes",
       "Presidente",
       "Courhasa",
       "EMEI Prof Pedrinha",
@@ -43,7 +43,7 @@ export const BUS_ROUTES_DB = [
       "EMEF Tiradentes", 
       "Palmarito Saraiva",
       "Santa Catarina",
-      "EMEF Santa Catarina",
+      "EMEF Estado de Santa Catarina",
       "EMEI Chapeuzinho Vermelho",
     ]
     },
@@ -81,7 +81,7 @@ export const BUS_ROUTES_DB = [
       "Nova Nordeste",
       "EMEI Vó Rosa",
       "EMEF Norberto Martinho Cardoso",
-      "EMEF Prof Clelia de Moraes",
+      "EMEF Prof. Clelia de Moraes",
     ]
     },
     {
@@ -134,7 +134,7 @@ export const BUS_ROUTES_DB = [
       "EMEI Vó Rosa",
       "EMEF Norberto Martinho Cardoso",
       "Ipiranga",
-      "EMEF Prof Clelia de Moraes",
+      "EMEF Prof. Clelia de Moraes",
     ]
     },
     {
@@ -147,11 +147,11 @@ export const BUS_ROUTES_DB = [
       "Centro",
       "Barra Norte",
       "Centro",
-      "EMEF Prof Manoel Mendes",
+      "EMEF Manoel Mendes",
       "Courhasa",
       "EMEI Prof Pedrinha",
       "EMEF Tiradentes",
-      "EMEF Santa Catarina",
+      "EMEF Estado de Santa Catarina",
       "EMEI Chapeuzinho Vermelho",
     ]
     },
@@ -163,12 +163,12 @@ export const BUS_ROUTES_DB = [
       "EMEI Prof Pedrinha",
       "Courhasa",
       "Centro",
-      "EMEF Prof Manoel Mendes",
+      "EMEF Manoel Mendes",
       "21 de abril",
       "EMEF Tiradentes",
       "Palmarito Saraiva",
       "Santa Catarina",
-      "EMEF Santa Catarina",
+      "EMEF Estado de Santa Catarina",
       "EMEI Chapeuzinho Vermelho",
     ]
     },

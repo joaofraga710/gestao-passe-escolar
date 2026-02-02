@@ -93,8 +93,8 @@ const IssuedCards = () => {
             neighborhood: findSmartValue(item, ['bairro']),
             parentName: findSmartValue(item, ['responsável']),
             parentPhone: findSmartValue(item, ['telefone']),
-            cpf: (findSmartValue(item, ['cpf']) || '').replace(/\D/g, ''),
-            date: (findSmartValue(item, ['carimbo']) || '').split(' ')[0],
+            cpf: String(findSmartValue(item, ['cpf']) || '').replace(/\D/g, ''),
+            date: String(findSmartValue(item, ['carimbo']) || '').split(' ')[0],
             photo: getDriveImage(findSmartValue(item, ['foto'])),
             status: "Emitida"
         }));
