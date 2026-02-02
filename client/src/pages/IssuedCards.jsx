@@ -51,7 +51,15 @@ const IssuedCards = () => {
       return;
     }
 
-    fetch(API_URL)
+    // Obter token do sessionStorage
+    const token = sessionStorage.getItem('school_token');
+
+    fetch(`${API_URL}/api/students`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (!Array.isArray(data)) throw new Error('Dados inválidos');
