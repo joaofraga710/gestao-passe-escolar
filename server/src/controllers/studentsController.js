@@ -1,4 +1,5 @@
 import { getAllStudents, getStudentById, createStudent, updateStudent, approveStudent } from '../db/students.js';
+import { markAsIssued, getIssuedStudentIds } from '../db/supabaseStudents.js';
 
 /**
  * GET /api/students
@@ -109,5 +110,42 @@ export const approveStudentCard = async (req, res) => {
   } catch (error) {
     console.error('Erro ao aprovar estudante:', error);
     res.status(500).json({ error: 'Erro ao aprovar estudante' });
+  }
+};
+
+/**
+ * POST /api/students/:id/issue
+ * Marca estudante como emitido (salva no Supabase)
+ */
+export const issueStudentCard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const username = req.user?.username || 'admin';
+    
+    // Marcar como emitido no Supabase
+    const result = await markAsIssued(parseInt(id), username);
+    
+    res.json({ 
+      success: true, 
+      message: 'Carteirinha marcada como emitida',
+      data: result 
+    });
+  } catch (error) {
+    console.error('Erro ao emitir carteirinha:', error);
+    res.status(500).json({ error: 'Erro ao emitir carteirinha' });
+  }
+};
+
+/**
+ * GET /api/students/issued
+ * Retorna IDs dos estudantes já emitidos
+ */
+export const getIssuedIds = async (req, res) => {
+  try {
+    const issuedIds = await getIssuedStudentIds();
+    res.json(issuedIds);
+  } catch (error) {
+    console.error('Erro ao buscar carteirinhas emitidas:', error);
+    res.status(500).json({ error: 'Erro ao buscar carteirinhas emitidas' });
   }
 };

@@ -41,27 +41,46 @@ const IssuedCards = () => {
     return `https://wsrv.nl/?url=${encodeURIComponent(`https://drive.google.com/uc?export=view&id=${idMatch[0]}`)}&w=400&q=80&output=webp`;
   };
 
-  const loadIssuedData = () => {
+  const loadIssuedData = async () => {
     setLoading(true);
-    const issuedIds = JSON.parse(localStorage.getItem('issuedCards') || '[]');
+    
+    try {
+      // Obter token do sessionStorage
+      const token = sessionStorage.getItem('school_token');
 
-    if (issuedIds.length === 0) {
-      setStudents([]);
-      setLoading(false);
-      return;
-    }
-
-    // Obter token do sessionStorage
-    const token = sessionStorage.getItem('school_token');
-
-    fetch(`${API_URL}/api/students`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+      // Buscar IDs dos emitidos do Supabase
+      const issuedResponse = await fetch(`${API_URL}/api/students/issued`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!issuedResponse.ok) {
+        throw new Error('Erro ao buscar emitidas');
       }
-    })
-      .then(res => res.json())
-      .then(data => {
+      
+      const issuedIds = await issuedResponse.json();
+
+      if (issuedIds.length === 0) {
+        setStudents([]);
+        setLoading(false);
+        return;
+      }
+
+      // Buscar todos os dados da planilha
+      const studentsResponse = await fetch(`${API_URL}/api/students`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!studentsResponse.ok) {
+        throw new Error('Erro ao buscar dados');
+      }
+      
+      const data = await studentsResponse.json();
         if (!Array.isArray(data)) throw new Error('Dados inválidos');
 
         const formattedData = data.map((item, index) => ({
@@ -80,14 +99,14 @@ const IssuedCards = () => {
             status: "Emitida"
         }));
 
-        const issuedOnly = formattedData.filter(student => issuedIds.includes(student.id));
+        const issuedOnly = formattedData.filter(student => issuedIds.includes(parseInt(student.id)));
         setStudents(issuedOnly.reverse());
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
+      } catch (err) {
+        console.error('Erro ao carregar emitidas:', err);
         setLoading(false);
-      });
+        alert('Erro ao carregar carteirinhas emitidas.');
+      }
   };
 
   useEffect(() => {

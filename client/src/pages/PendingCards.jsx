@@ -185,15 +185,36 @@ const PendingCards = () => {
     if (!FORM_URL || FORM_URL.includes('SEU_LINK')) { e.preventDefault(); alert("Link não configurado."); }
   };
 
-  const handleMarkAsPrinted = (studentId) => {
+  const handleMarkAsPrinted = async (studentId) => {
     const idString = String(studentId);
-    const issuedList = JSON.parse(localStorage.getItem('issuedCards') || '[]');
-    if (!issuedList.includes(idString)) {
-      localStorage.setItem('issuedCards', JSON.stringify([...issuedList, idString]));
+    
+    try {
+      // Obter token
+      const token = sessionStorage.getItem('school_token');
+      
+      // Marcar como emitida no backend (Supabase)
+      const response = await fetch(`${API_URL}/api/students/${idString}/issue`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao marcar como emitida');
+      }
+      
+      // Remover da lista local e fechar modal
+      setStudents(prev => prev.filter(s => String(s.id) !== idString));
+      setSelectedStudent(null);
+      
+      // Notificar outras abas
       window.dispatchEvent(new Event("cards_updated"));
+    } catch (error) {
+      console.error('Erro ao marcar carteirinha:', error);
+      alert('Erro ao marcar carteirinha como emitida. Tente novamente.');
     }
-    setStudents(prev => prev.filter(s => String(s.id) !== idString));
-    setSelectedStudent(null);
   };
 
   const getBadgeStyle = (type) => {
