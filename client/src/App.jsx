@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import PendingCards from './pages/PendingCards';
 import IssuedCards from './pages/IssuedCards';
+import CalcularRota from './pages/CalcularRota';
 import Login from './pages/Login';
 import './styles/App.css';
 
@@ -38,6 +39,7 @@ function App() {
                <Route path="/" element={<Navigate to="/pendentes" replace />} />
                <Route path="/pendentes" element={<PendingCards />} />
                <Route path="/emitidas" element={<IssuedCards />} />
+               <Route path="/calcular-rota" element={<CalcularRota />} />
             </Route>
           </Route>
 
