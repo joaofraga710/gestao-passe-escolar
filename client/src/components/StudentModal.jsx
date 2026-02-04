@@ -3,7 +3,7 @@ import '../styles/StudentModal.css';
 import CardGenerator from './CardGenerator'; 
 import { calculateBestRoute } from '../utils/routesDb';
 
-// --- Ícones (Mantidos iguais) ---
+// --- Ícones ---
 const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
   const icons = {
     user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
@@ -33,7 +33,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
   const [currentRoute, setCurrentRoute] = useState(student ? (student.route || "Rota Indefinida") : "");
   const [suggestedRoute, setSuggestedRoute] = useState(null);
   const [isEditingData, setIsEditingData] = useState(false);
-  const [isManualRoute, setIsManualRoute] = useState(false); // Para controlar edição manual da rota
+  const [isManualRoute, setIsManualRoute] = useState(false);
   const [formData, setFormData] = useState(student || {});
 
   useEffect(() => {
@@ -48,44 +48,73 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
 
   if (!student) return null;
 
-  // --- Funções de Formatação (Máscaras) ---
-  const formatCPF = (value) => {
+  // --- Funções de Máscara (Melhoradas) ---
+  const maskCPF = (value) => {
     return value
       .replace(/\D/g, '') // Remove tudo que não é dígito
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-      .replace(/(-\d{2})\d+?$/, '$1'); // Limita o tamanho
+      .replace(/(-\d{2})\d+?$/, '$1'); // Limita o tamanho visual
   };
 
-  const formatPhone = (value) => {
-    return value
-      .replace(/\D/g, '')
-      .replace(/^(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d)(\d{4})$/, '$1-$2'); // Formato (51) 9 9999-9999
+  const maskPhone = (value) => {
+    let r = value.replace(/\D/g, ""); // Remove tudo que não é dígito
+    r = r.replace(/^0/, ""); // Remove zero à esquerda se houver
+
+    if (r.length > 10) {
+      // Formato Celular: (XX) 9 1234-5678
+      r = r.replace(/^(\d\d)(\d{5})(\d{4}).*/, "($1) $2-$3");
+      // Ajuste visual para separar o nono dígito se preferir: ($1) $2 $3-$4
+      // Mas o padrão pedido foi: (51) 9 9999-9999
+      r = r.replace(/^(\d{2})(\d)(\d{4})(\d{4}).*/, '($1) $2 $3-$4'); 
+    } else if (r.length > 5) {
+      // Formato Fixo/Incompleto: (XX) 1234-5678
+      r = r.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+    } else if (r.length > 2) {
+      r = r.replace(/^(\d\d)(\d{0,5})/, "($1) $2");
+    } else {
+      // Apenas DDD
+      r = r.replace(/^(\d*)/, "($1");
+    }
+    return r;
   };
 
+  // Versão simplificada e robusta para garantir que funcione enquanto digita
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let finalValue = value;
 
-    // Aplica máscaras dependendo do campo
     if (name === 'cpf') {
-      finalValue = formatCPF(value);
-    } else if (name === 'parentPhone') {
-      finalValue = formatPhone(value);
+      // Limita a 14 caracteres (000.000.000-00)
+      finalValue = maskCPF(value).slice(0, 14);
+    } 
+    else if (name === 'parentPhone') {
+      // Formatação simples e direta
+      let v = value.replace(/\D/g,'');
+      if (v.length > 11) v = v.slice(0, 11); // Limita a 11 números
+
+      // Aplica a máscara baseada no tamanho
+      if (v.length > 10) { // Celular 11 dígitos
+         finalValue = v.replace(/^(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2 $3-$4');
+      } else if (v.length > 6) { // Fixo 10 dígitos
+         finalValue = v.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+      } else if (v.length > 2) {
+         finalValue = v.replace(/^(\d{2})/, '($1) ');
+      } else {
+         finalValue = v;
+      }
     }
 
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  // --- Lógica de Rota (Estilo Antigo Restaurado) ---
+  // --- Lógica de Rota ---
   const handleSuggestRoute = () => {
-    // Usa os dados do formulário (que podem ter sido editados) para calcular
     const result = calculateBestRoute(formData.street, formData.neighborhood, formData.school);
     if (result) {
       setSuggestedRoute({ found: true, text: result.name, reason: result.reason });
-      setIsManualRoute(false); // Sai do modo manual se achou sugestão
+      setIsManualRoute(false);
     } else {
       setSuggestedRoute({ found: false, text: "Nenhuma rota compatível." });
     }
@@ -103,7 +132,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     setIsManualRoute(true);
   };
 
-  // --- Salvar Geral ---
+  // --- Salvar ---
   const handleSaveChanges = () => {
     const finalData = { ...formData, route: currentRoute };
     if (onSave) onSave(finalData);
@@ -144,7 +173,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         
-        {/* Header */}
         <div className="modal-header">
           <div>
             <h2>{isEditingData ? 'Editando Dados' : 'Detalhes da Solicitação'}</h2>
@@ -200,7 +228,15 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                 <div className="field-group">
                   <label>CPF</label>
                   {isEditingData ? (
-                      <input type="text" name="cpf" value={formData.cpf} onChange={handleInputChange} style={inputStyle} maxLength="14" placeholder="000.000.000-00"/>
+                      <input 
+                        type="text" 
+                        name="cpf" 
+                        value={formData.cpf} 
+                        onChange={handleInputChange} 
+                        style={inputStyle} 
+                        placeholder="000.000.000-00"
+                        maxLength="14"
+                      />
                   ) : (
                       <div className="value-box">{formData.cpf}</div>
                   )}
@@ -219,14 +255,12 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
 
           <hr className="divider" />
           
-          {/* --- SEÇÃO DE ROTA (RESTAURADA COMO ANTES) --- */}
           <div>
             <div className="section-title"><Icon name="mapPin" size={16} /> Localização e Transporte</div>
             
             <div className="route-section-wrapper">
                <div className="route-controls">
                   <div className="route-display">
-                      {/* Lógica: Mostra Input se for Manual, Sugestão se tiver, ou Rota Atual */}
                       {isManualRoute ? (
                           <div className="field-group">
                              <label style={{paddingLeft: '10px'}}>DIGITE A ROTA:</label>
@@ -260,12 +294,10 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                   </div>
 
                   <div className="action-buttons">
-                    {/* Botão de OK para modo manual */}
                     {isManualRoute && (
                          <button className="btn-pill btn-blue-action" onClick={() => setIsManualRoute(false)}>OK</button>
                     )}
 
-                    {/* Botões de Aceitar/Manual quando tem sugestão */}
                     {!isManualRoute && suggestedRoute && (
                         <>
                            <button className="btn-pill btn-primary-action" onClick={handleAcceptSuggestion}>
@@ -277,7 +309,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                         </>
                     )}
 
-                    {/* Botão de Sugerir quando não tem nada pendente */}
                     {!isManualRoute && !suggestedRoute && (
                         <button className="btn-pill btn-primary-action" onClick={handleSuggestRoute}>
                          Sugerir Rota
@@ -338,7 +369,15 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
               <div className="field-group">
                 <label>Contato</label>
                 {isEditingData ? (
-                    <input type="text" name="parentPhone" value={formData.parentPhone} onChange={handleInputChange} style={inputStyle} maxLength="16" placeholder="(51) 9 9999-9999"/>
+                    <input 
+                        type="text" 
+                        name="parentPhone" 
+                        value={formData.parentPhone} 
+                        onChange={handleInputChange} 
+                        style={inputStyle} 
+                        placeholder="(51) 9 9999-9999"
+                        maxLength="16"
+                    />
                 ) : (
                     <div className="value-box contact-highlight">{formData.parentPhone || 'Não informado'}</div>
                 )}
