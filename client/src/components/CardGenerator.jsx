@@ -39,6 +39,33 @@ const theme = {
 
 const CONFIG = { marginTop: '10mm', zoomScreen: '0.73' };
 
+const maskCPF = (value) => {
+  if (!value) return '';
+  const clean = String(value).replace(/\D/g, '');
+  if (clean.length === 0) return '';
+  return clean
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+const maskPhone = (value) => {
+  if (!value) return '';
+  let r = String(value).replace(/\D/g, "");
+  r = r.replace(/^0/, "");
+  if (r.length > 10) {
+    r = r.replace(/^(\d\d)(\d)(\d{4})(\d{4}).*/, "($1) $2 $3-$4");
+  } else if (r.length > 5) {
+    r = r.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+  } else if (r.length > 2) {
+    r = r.replace(/^(\d\d)(\d{0,5})/, "($1) $2");
+  } else {
+    r = r.replace(/^(\d*)/, "($1");
+  }
+  return r;
+};
+
 const SingleCard = ({ student, styles, base64Background, photoSrc }) => {
   const blueTextStyle = {
     position: 'absolute', color: '#003366', fontWeight: 'bold', fontSize: '13px',
@@ -58,10 +85,10 @@ const SingleCard = ({ student, styles, base64Background, photoSrc }) => {
         ) : <div style={{width:'100%', height:'100%', background:'#e5e7eb'}}></div>}
       </div>
       <div style={{ ...blueTextStyle, top: '163px', left: '75px', fontSize: '16px', textTransform: 'uppercase', width: '240px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
-      <div style={{ ...blueTextStyle, top: '187px', left: '107px', fontSize: '16px' }}>{student.cpf || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '187px', left: '107px', fontSize: '16px' }}>{maskCPF(student.cpf) || '---'}</div>
       <div style={{ ...blueTextStyle, top: '210.5px', width: '240px', fontSize: '16px' }}>{student.parentName || '---'}</div>
       <div style={{ ...blueTextStyle, top: '234.5px', color: '#d32f2f', width: '240px', left: '72px', fontSize: '16px' }}>{student.route || '---'}</div>
-      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '16px', fontFamily: '"Arial", sans-serif', top: '293.5px', left: '90px', zIndex: 10, letterSpacing: '0.5px' }}>{student.parentPhone || '---'}</div>
+      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '16px', fontFamily: '"Arial", sans-serif', top: '293.5px', left: '90px', zIndex: 10, letterSpacing: '0.5px' }}>{maskPhone(student.parentPhone) || '---'}</div>
     </div>
   );
 };
@@ -181,7 +208,7 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
                <span style={styles.label}>ZOOM</span>
                <span style={styles.label}>{zoom.toFixed(1)}x</span>
             </div>
-            <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(e.target.value)} className="minimal-slider" style={styles.slider} />
+            <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="minimal-slider" style={styles.slider} />
           </div>
           <div style={styles.footer}>
             <button onClick={onClose} style={styles.btnSecondary}>Cancelar</button>
@@ -209,10 +236,10 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
         <div style={styles.previewWrapper} className="fade-in">
           <div style={{...styles.a4Page, paddingTop: CONFIG.marginTop}}>
             <div style={{display: 'flex', width: '100%', justifyContent: 'center', gap: '0px'}}>
-              <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
+              <div style={{...styles.cardWrapper, zoom: 1}}>
                 <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
               </div>
-              <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
+              <div style={{...styles.cardWrapper, zoom: 1}}>
                 <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
               </div>
             </div>
