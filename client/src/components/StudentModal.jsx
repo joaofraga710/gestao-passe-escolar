@@ -3,7 +3,7 @@ import '../styles/StudentModal.css';
 import CardGenerator from './CardGenerator'; 
 import { calculateBestRoute } from '../utils/routesDb';
 
-// --- Mantive o seu componente de ícones igualzinho ---
+// --- Ícones (Mantidos iguais) ---
 const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
   const icons = {
     user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
@@ -28,55 +28,64 @@ const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
   );
 };
 
-// Adicionei a prop 'onSave'
 const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
   const [showPrint, setShowPrint] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(student ? (student.route || "Rota Indefinida") : "");
   const [suggestedRoute, setSuggestedRoute] = useState(null);
-  
-  // Estado para controlar se estamos editando
-  const [isEditing, setIsEditing] = useState(false);
-  // Estado local para guardar os dados enquanto edita
+  const [isEditingData, setIsEditingData] = useState(false);
+  const [isManualRoute, setIsManualRoute] = useState(false); // Para controlar edição manual da rota
   const [formData, setFormData] = useState(student || {});
 
   useEffect(() => {
     if (student) {
       setCurrentRoute(student.route || "Rota Indefinida");
       setSuggestedRoute(null);
-      setIsEditing(false);
-      setFormData(student); // Reseta os dados ao abrir outro aluno
+      setIsEditingData(false);
+      setIsManualRoute(false);
+      setFormData(student);
     }
   }, [student]);
 
   if (!student) return null;
 
-  // --- Funções de Edição ---
+  // --- Funções de Formatação (Máscaras) ---
+  const formatCPF = (value) => {
+    return value
+      .replace(/\D/g, '') // Remove tudo que não é dígito
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+      .replace(/(-\d{2})\d+?$/, '$1'); // Limita o tamanho
+  };
+
+  const formatPhone = (value) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/^(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d)(\d{4})$/, '$1-$2'); // Formato (51) 9 9999-9999
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let finalValue = value;
+
+    // Aplica máscaras dependendo do campo
+    if (name === 'cpf') {
+      finalValue = formatCPF(value);
+    } else if (name === 'parentPhone') {
+      finalValue = formatPhone(value);
+    }
+
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  const handleSave = () => {
-    // Junta os dados do form com a rota atual
-    const finalData = { ...formData, route: currentRoute };
-    
-    // Chama a função do pai para salvar de verdade
-    if (onSave) onSave(finalData);
-    
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setFormData(student); // Volta ao original
-    setCurrentRoute(student.route || "Rota Indefinida");
-    setIsEditing(false);
-  };
-
-  // --- Funções de Rota ---
+  // --- Lógica de Rota (Estilo Antigo Restaurado) ---
   const handleSuggestRoute = () => {
+    // Usa os dados do formulário (que podem ter sido editados) para calcular
     const result = calculateBestRoute(formData.street, formData.neighborhood, formData.school);
     if (result) {
       setSuggestedRoute({ found: true, text: result.name, reason: result.reason });
+      setIsManualRoute(false); // Sai do modo manual se achou sugestão
     } else {
       setSuggestedRoute({ found: false, text: "Nenhuma rota compatível." });
     }
@@ -87,6 +96,26 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
       setCurrentRoute(suggestedRoute.text); 
       setSuggestedRoute(null); 
     }
+  };
+
+  const handleManualEntry = () => {
+    setSuggestedRoute(null);
+    setIsManualRoute(true);
+  };
+
+  // --- Salvar Geral ---
+  const handleSaveChanges = () => {
+    const finalData = { ...formData, route: currentRoute };
+    if (onSave) onSave(finalData);
+    setIsEditingData(false);
+  };
+
+  const handleCancelEdit = () => {
+    setFormData(student);
+    setCurrentRoute(student.route || "Rota Indefinida");
+    setIsEditingData(false);
+    setIsManualRoute(false);
+    setSuggestedRoute(null);
   };
 
   if (showPrint) {
@@ -100,33 +129,43 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     );
   }
 
+  const inputStyle = {
+    width: '100%',
+    padding: '8px',
+    background: 'rgba(0,0,0,0.2)',
+    border: '1px solid #30363d',
+    color: '#fff',
+    borderRadius: '6px',
+    fontSize: 'inherit',
+    fontFamily: 'inherit'
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         
-        {/* Cabeçalho com Botões de Ação */}
+        {/* Header */}
         <div className="modal-header">
           <div>
-            <h2>{isEditing ? 'Editando Aluno' : 'Detalhes da Solicitação'}</h2>
-            {!isEditing && <div className="meta-date">Enviado em: {student.date || 'Data não registrada'}</div>}
+            <h2>{isEditingData ? 'Editando Dados' : 'Detalhes da Solicitação'}</h2>
+            {!isEditingData && <div className="meta-date">Enviado em: {student.date || 'Data não registrada'}</div>}
           </div>
           
-          <div className="modal-actions">
-            {isEditing ? (
-              <>
-                <button className="btn-pill btn-secondary-action" onClick={handleCancel} style={{height: 32, fontSize: '0.8rem'}}>
-                  Cancelar
+          <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+            {!isEditingData ? (
+                <button className="icon-btn" onClick={() => setIsEditingData(true)} title="Editar Dados" style={{background:'none', border:'none', cursor:'pointer', color:'#8b949e'}}>
+                    <Icon name="edit" size={20} />
                 </button>
-                <button className="btn-pill btn-primary-action" onClick={handleSave} style={{height: 32, fontSize: '0.8rem'}}>
-                  <Icon name="save" size={16} /> Salvar
-                </button>
-              </>
             ) : (
-              <button className="icon-btn" onClick={() => setIsEditing(true)} title="Editar" style={{background:'none', border:'none', cursor:'pointer', color:'#8b949e'}}>
-                <Icon name="edit" size={20} />
-              </button>
+                <div style={{display: 'flex', gap: '8px'}}>
+                    <button className="btn-pill btn-secondary-action" onClick={handleCancelEdit} style={{fontSize: '0.8rem', height:'32px'}}>
+                        Cancelar
+                    </button>
+                    <button className="btn-pill btn-primary-action" onClick={handleSaveChanges} style={{fontSize: '0.8rem', height:'32px'}}>
+                        Salvar
+                    </button>
+                </div>
             )}
-            
             <button className="close-btn" onClick={onClose}>
               <Icon name="close" size={20} />
             </button>
@@ -146,34 +185,32 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
             </div>
             
             <div className="info-col">
-              <div className="section-title">
-                <Icon name="idCard" size={16} /> Identificação
-              </div>
+              <div className="section-title"><Icon name="idCard" size={16} /> Identificação</div>
               
               <div className="field-group">
                 <label>Nome Completo</label>
-                {isEditing ? (
-                  <input className="edit-input" name="name" value={formData.name} onChange={handleInputChange} />
+                {isEditingData ? (
+                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} style={inputStyle} />
                 ) : (
-                  <div className="value-box" style={{fontWeight:'600', color:'#fff'}}>{formData.name}</div>
+                    <div className="value-box" style={{fontWeight:'600', color:'#fff'}}>{formData.name}</div>
                 )}
               </div>
               
               <div className="grid-2">
                 <div className="field-group">
                   <label>CPF</label>
-                  {isEditing ? (
-                    <input className="edit-input" name="cpf" value={formData.cpf} onChange={handleInputChange} />
+                  {isEditingData ? (
+                      <input type="text" name="cpf" value={formData.cpf} onChange={handleInputChange} style={inputStyle} maxLength="14" placeholder="000.000.000-00"/>
                   ) : (
-                    <div className="value-box">{formData.cpf}</div>
+                      <div className="value-box">{formData.cpf}</div>
                   )}
                 </div>
                 <div className="field-group">
                   <label>Escola Destino</label>
-                  {isEditing ? (
-                    <input className="edit-input" name="school" value={formData.school} onChange={handleInputChange} />
+                  {isEditingData ? (
+                      <input type="text" name="school" value={formData.school} onChange={handleInputChange} style={inputStyle} />
                   ) : (
-                    <div className="value-box">{formData.school}</div>
+                      <div className="value-box">{formData.school}</div>
                   )}
                 </div>
               </div>
@@ -182,18 +219,19 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
 
           <hr className="divider" />
           
+          {/* --- SEÇÃO DE ROTA (RESTAURADA COMO ANTES) --- */}
           <div>
-            <div className="section-title">
-              <Icon name="mapPin" size={16} /> Localização e Transporte
-            </div>
+            <div className="section-title"><Icon name="mapPin" size={16} /> Localização e Transporte</div>
             
             <div className="route-section-wrapper">
                <div className="route-controls">
                   <div className="route-display">
-                      {isEditing ? (
+                      {/* Lógica: Mostra Input se for Manual, Sugestão se tiver, ou Rota Atual */}
+                      {isManualRoute ? (
                           <div className="field-group">
-                             <label style={{paddingLeft: '10px'}}>ROTA (EDITÁVEL):</label>
+                             <label style={{paddingLeft: '10px'}}>DIGITE A ROTA:</label>
                              <input 
+                                autoFocus
                                 type="text" 
                                 className="route-input-pill"
                                 value={currentRoute}
@@ -221,75 +259,88 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                       )}
                   </div>
 
-                  {!isEditing && (
-                    <div className="action-buttons">
-                      {suggestedRoute ? (
-                          <button className="btn-pill btn-primary-action" onClick={handleAcceptSuggestion}>
-                            <Icon name="check" size={16} /> Aceitar
-                          </button>
-                      ) : (
-                          <button className="btn-pill btn-primary-action" onClick={handleSuggestRoute}>
-                           Sugerir Rota
-                          </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="action-buttons">
+                    {/* Botão de OK para modo manual */}
+                    {isManualRoute && (
+                         <button className="btn-pill btn-blue-action" onClick={() => setIsManualRoute(false)}>OK</button>
+                    )}
+
+                    {/* Botões de Aceitar/Manual quando tem sugestão */}
+                    {!isManualRoute && suggestedRoute && (
+                        <>
+                           <button className="btn-pill btn-primary-action" onClick={handleAcceptSuggestion}>
+                             <Icon name="check" size={16} /> Aceitar
+                           </button>
+                           <button className="btn-pill btn-secondary-action" onClick={handleManualEntry}>
+                             <Icon name="edit" size={14} /> Manual
+                           </button>
+                        </>
+                    )}
+
+                    {/* Botão de Sugerir quando não tem nada pendente */}
+                    {!isManualRoute && !suggestedRoute && (
+                        <button className="btn-pill btn-primary-action" onClick={handleSuggestRoute}>
+                         Sugerir Rota
+                        </button>
+                    )}
+                  </div>
                </div>
 
                {suggestedRoute && !suggestedRoute.found && (
-                  <div className="route-error"><Icon name="close" size={14} /> {suggestedRoute.text}</div>
+                  <div className="route-error">
+                      <Icon name="close" size={14} /> {suggestedRoute.text} 
+                      <button className="link-btn" onClick={handleManualEntry}>Preencher Manualmente?</button>
+                  </div>
                )}
             </div>
 
             <div className="grid-3-1" style={{marginTop: '15px'}}>
               <div className="field-group">
                 <label>Rua</label>
-                {isEditing ? (
-                  <input className="edit-input" name="street" value={formData.street} onChange={handleInputChange} />
+                {isEditingData ? (
+                    <input type="text" name="street" value={formData.street} onChange={handleInputChange} style={inputStyle} />
                 ) : (
-                  <div className="value-box">{formData.street || 'Não informada'}</div>
+                    <div className="value-box">{formData.street || 'Não informada'}</div>
                 )}
               </div>
               <div className="field-group">
                 <label>Nº</label>
-                {isEditing ? (
-                  <input className="edit-input" name="number" value={formData.number} onChange={handleInputChange} />
+                {isEditingData ? (
+                    <input type="text" name="number" value={formData.number} onChange={handleInputChange} style={inputStyle} />
                 ) : (
-                  <div className="value-box">{formData.number || 'S/N'}</div>
+                    <div className="value-box">{formData.number || 'S/N'}</div>
                 )}
               </div>
             </div>
             <div className="field-group" style={{marginTop:'12px'}}>
               <label>Bairro</label>
-              {isEditing ? (
-                <input className="edit-input" name="neighborhood" value={formData.neighborhood} onChange={handleInputChange} />
-              ) : (
-                <div className="value-box">{formData.neighborhood || 'Não informado'}</div>
-              )}
+              {isEditingData ? (
+                    <input type="text" name="neighborhood" value={formData.neighborhood} onChange={handleInputChange} style={inputStyle} />
+                ) : (
+                    <div className="value-box">{formData.neighborhood || 'Não informado'}</div>
+                )}
             </div>
           </div>
 
           <hr className="divider" />
           
           <div>
-            <div className="section-title">
-              <Icon name="users" size={16} /> Responsável
-            </div>
+            <div className="section-title"><Icon name="users" size={16} /> Responsável</div>
             <div className="grid-2">
               <div className="field-group">
                 <label>Nome</label>
-                {isEditing ? (
-                  <input className="edit-input" name="parentName" value={formData.parentName} onChange={handleInputChange} />
+                {isEditingData ? (
+                    <input type="text" name="parentName" value={formData.parentName} onChange={handleInputChange} style={inputStyle} />
                 ) : (
-                  <div className="value-box">{formData.parentName || 'Não informado'}</div>
+                    <div className="value-box">{formData.parentName || 'Não informado'}</div>
                 )}
               </div>
               <div className="field-group">
                 <label>Contato</label>
-                {isEditing ? (
-                  <input className="edit-input" name="parentPhone" value={formData.parentPhone} onChange={handleInputChange} />
+                {isEditingData ? (
+                    <input type="text" name="parentPhone" value={formData.parentPhone} onChange={handleInputChange} style={inputStyle} maxLength="16" placeholder="(51) 9 9999-9999"/>
                 ) : (
-                  <div className="value-box contact-highlight">{formData.parentPhone || 'Não informado'}</div>
+                    <div className="value-box contact-highlight">{formData.parentPhone || 'Não informado'}</div>
                 )}
               </div>
             </div>
@@ -298,10 +349,15 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
 
         <div className="modal-footer">
           <button className="btn-footer btn-footer-cancel" onClick={onClose}>Fechar</button>
-          {!isEditing && (
-            <button className="btn-footer btn-footer-primary" onClick={() => setShowPrint(true)}>
-              <Icon name="creditCard" size={18} /> Gerar Carteirinha
-            </button>
+          
+          {isEditingData ? (
+              <button className="btn-footer btn-footer-primary" onClick={handleSaveChanges} style={{backgroundColor: '#1f6feb'}}>
+                <Icon name="save" size={18} /> Salvar Alterações
+              </button>
+          ) : (
+              <button className="btn-footer btn-footer-primary" onClick={() => setShowPrint(true)}>
+                <Icon name="creditCard" size={18} /> Gerar Carteirinha
+              </button>
           )}
         </div>
       </div>
