@@ -3,7 +3,6 @@ import '../styles/StudentModal.css';
 import CardGenerator from './CardGenerator'; 
 import { calculateBestRoute } from '../utils/routesDb';
 
-// --- Ícones (Mantidos) ---
 const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
   const icons = {
     user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
@@ -34,8 +33,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
   const [suggestedRoute, setSuggestedRoute] = useState(null);
   const [isEditingData, setIsEditingData] = useState(false);
   const [isManualRoute, setIsManualRoute] = useState(false);
-  
-  // INICIALIZAÇÃO SEGURA: Garante que nenhum campo comece como undefined ou null
   const [formData, setFormData] = useState({
     name: '',
     cpf: '',
@@ -45,12 +42,11 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     neighborhood: '',
     parentName: '',
     parentPhone: '',
-    ...student // Sobrescreve com os dados do aluno se existirem
+    ...student
   });
 
   useEffect(() => {
     if (student) {
-      // Força conversão para string para evitar erros no input
       setFormData({
         name: student.name || '',
         cpf: student.cpf ? String(student.cpf) : '',
@@ -71,40 +67,31 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
 
   if (!student) return null;
 
-  // --- MÁSCARAS FUNCIONAIS ---
-  
-  // CPF: 000.000.000-00
   const maskCPF = (value) => {
     return value
-      .replace(/\D/g, '') // Remove letras
+      .replace(/\D/g, '')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})/, '$1-$2')
       .replace(/(-\d{2})\d+?$/, '$1');
   };
 
-  // TELEFONE: (51) 9 9999-9999
   const maskPhone = (value) => {
     let r = value.replace(/\D/g, "");
     r = r.replace(/^0/, "");
 
     if (r.length > 10) {
-      // 11 dígitos: (XX) X XXXX-XXXX
       r = r.replace(/^(\d\d)(\d)(\d{4})(\d{4}).*/, "($1) $2 $3-$4");
     } else if (r.length > 5) {
-      // 10 dígitos ou menos: (XX) XXXX-XXXX
       r = r.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
     } else if (r.length > 2) {
-      // Só DDD: (XX) 
       r = r.replace(/^(\d\d)(\d{0,5})/, "($1) $2");
     } else {
-      // Digitando DDD
       r = r.replace(/^(\d*)/, "($1");
     }
     return r;
   };
 
-  // Função para exibir CPF formatado
   const displayCPF = (value) => {
     if (!value) return '';
     const clean = String(value).replace(/\D/g, '');
@@ -112,7 +99,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     return maskCPF(clean);
   };
 
-  // Função para exibir telefone formatado
   const displayPhone = (value) => {
     if (!value) return 'Não informado';
     const clean = String(value).replace(/\D/g, '');
@@ -134,7 +120,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  // --- LÓGICA DE ROTAS ---
   const handleSuggestRoute = () => {
     const result = calculateBestRoute(formData.street, formData.neighborhood, formData.school);
     if (result) {
@@ -222,9 +207,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                 <div style={{display: 'flex', gap: '8px'}}>
                     <button className="btn-pill btn-secondary-action" onClick={handleCancelEdit} style={{fontSize: '0.8rem', height:'32px'}}>
                         Cancelar
-                    </button>
-                    <button className="btn-pill btn-primary-action" onClick={handleSaveChanges} style={{fontSize: '0.8rem', height:'32px'}}>
-                        Salvar
                     </button>
                 </div>
             )}

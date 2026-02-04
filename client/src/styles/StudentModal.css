@@ -319,18 +319,6 @@
   transform: scale(0.96) translateY(0);
 }
 
-.btn-primary-action {
-  background-color: #238636;
-  color: white;
-  border: 1px solid rgba(240, 246, 252, 0.1);
-}
-
-.btn-primary-action:hover {
-  background-color: #2ea043;
-  border-color: rgba(240, 246, 252, 0.1);
-  transform: translateY(-3px);
-}
-
 .btn-secondary-action {
   background-color: transparent;
   color: #c9d1d9;
@@ -410,15 +398,12 @@
 
 .edit-input {
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
-  border: 1px solid #30363d;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 14px;
+  border-radius: 12px;
   font-size: 0.95rem;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s;
+  color: #e6edf3;
 }
 
 .edit-input:focus {
