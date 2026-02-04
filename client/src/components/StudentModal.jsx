@@ -3,7 +3,7 @@ import '../styles/StudentModal.css';
 import CardGenerator from './CardGenerator'; 
 import { calculateBestRoute } from '../utils/routesDb';
 
-// --- Ícones ---
+// --- Ícones (Mantidos) ---
 const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
   const icons = {
     user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
@@ -30,86 +30,95 @@ const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
 
 const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
   const [showPrint, setShowPrint] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState(student ? (student.route || "Rota Indefinida") : "");
+  const [currentRoute, setCurrentRoute] = useState("");
   const [suggestedRoute, setSuggestedRoute] = useState(null);
   const [isEditingData, setIsEditingData] = useState(false);
   const [isManualRoute, setIsManualRoute] = useState(false);
-  const [formData, setFormData] = useState(student || {});
+  
+  // INICIALIZAÇÃO SEGURA: Garante que nenhum campo comece como undefined ou null
+  const [formData, setFormData] = useState({
+    name: '',
+    cpf: '',
+    school: '',
+    street: '',
+    number: '',
+    neighborhood: '',
+    parentName: '',
+    parentPhone: '',
+    ...student // Sobrescreve com os dados do aluno se existirem
+  });
 
   useEffect(() => {
     if (student) {
+      // Força conversão para string para evitar erros no input
+      setFormData({
+        name: student.name || '',
+        cpf: student.cpf ? String(student.cpf) : '',
+        school: student.school || '',
+        street: student.street || '',
+        number: student.number || '',
+        neighborhood: student.neighborhood || '',
+        parentName: student.parentName || '',
+        parentPhone: student.parentPhone ? String(student.parentPhone) : '',
+        ...student
+      });
       setCurrentRoute(student.route || "Rota Indefinida");
       setSuggestedRoute(null);
       setIsEditingData(false);
       setIsManualRoute(false);
-      setFormData(student);
     }
   }, [student]);
 
   if (!student) return null;
 
-  // --- Funções de Máscara (Melhoradas) ---
+  // --- MÁSCARAS FUNCIONAIS ---
+  
+  // CPF: 000.000.000-00
   const maskCPF = (value) => {
     return value
-      .replace(/\D/g, '') // Remove tudo que não é dígito
+      .replace(/\D/g, '') // Remove letras
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-      .replace(/(-\d{2})\d+?$/, '$1'); // Limita o tamanho visual
+      .replace(/(-\d{2})\d+?$/, '$1');
   };
 
+  // TELEFONE: (51) 9 9999-9999
   const maskPhone = (value) => {
-    let r = value.replace(/\D/g, ""); // Remove tudo que não é dígito
-    r = r.replace(/^0/, ""); // Remove zero à esquerda se houver
+    let r = value.replace(/\D/g, "");
+    r = r.replace(/^0/, "");
 
     if (r.length > 10) {
-      // Formato Celular: (XX) 9 1234-5678
-      r = r.replace(/^(\d\d)(\d{5})(\d{4}).*/, "($1) $2-$3");
-      // Ajuste visual para separar o nono dígito se preferir: ($1) $2 $3-$4
-      // Mas o padrão pedido foi: (51) 9 9999-9999
-      r = r.replace(/^(\d{2})(\d)(\d{4})(\d{4}).*/, '($1) $2 $3-$4'); 
+      // 11 dígitos: (XX) X XXXX-XXXX
+      r = r.replace(/^(\d\d)(\d)(\d{4})(\d{4}).*/, "($1) $2 $3-$4");
     } else if (r.length > 5) {
-      // Formato Fixo/Incompleto: (XX) 1234-5678
+      // 10 dígitos ou menos: (XX) XXXX-XXXX
       r = r.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
     } else if (r.length > 2) {
+      // Só DDD: (XX) 
       r = r.replace(/^(\d\d)(\d{0,5})/, "($1) $2");
     } else {
-      // Apenas DDD
+      // Digitando DDD
       r = r.replace(/^(\d*)/, "($1");
     }
     return r;
   };
 
-  // Versão simplificada e robusta para garantir que funcione enquanto digita
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let finalValue = value;
 
     if (name === 'cpf') {
-      // Limita a 14 caracteres (000.000.000-00)
-      finalValue = maskCPF(value).slice(0, 14);
+      finalValue = maskCPF(value);
     } 
     else if (name === 'parentPhone') {
-      // Formatação simples e direta
-      let v = value.replace(/\D/g,'');
-      if (v.length > 11) v = v.slice(0, 11); // Limita a 11 números
-
-      // Aplica a máscara baseada no tamanho
-      if (v.length > 10) { // Celular 11 dígitos
-         finalValue = v.replace(/^(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2 $3-$4');
-      } else if (v.length > 6) { // Fixo 10 dígitos
-         finalValue = v.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-      } else if (v.length > 2) {
-         finalValue = v.replace(/^(\d{2})/, '($1) ');
-      } else {
-         finalValue = v;
-      }
+      finalValue = maskPhone(value);
     }
 
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  // --- Lógica de Rota ---
+  // --- LÓGICA DE ROTAS ---
   const handleSuggestRoute = () => {
     const result = calculateBestRoute(formData.street, formData.neighborhood, formData.school);
     if (result) {
@@ -132,7 +141,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     setIsManualRoute(true);
   };
 
-  // --- Salvar ---
   const handleSaveChanges = () => {
     const finalData = { ...formData, route: currentRoute };
     if (onSave) onSave(finalData);
@@ -140,7 +148,17 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
   };
 
   const handleCancelEdit = () => {
-    setFormData(student);
+    setFormData({
+        name: student.name || '',
+        cpf: student.cpf ? String(student.cpf) : '',
+        school: student.school || '',
+        street: student.street || '',
+        number: student.number || '',
+        neighborhood: student.neighborhood || '',
+        parentName: student.parentName || '',
+        parentPhone: student.parentPhone ? String(student.parentPhone) : '',
+        ...student
+    });
     setCurrentRoute(student.route || "Rota Indefinida");
     setIsEditingData(false);
     setIsManualRoute(false);
