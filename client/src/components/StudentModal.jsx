@@ -104,6 +104,22 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     return r;
   };
 
+  // Função para exibir CPF formatado
+  const displayCPF = (value) => {
+    if (!value) return '';
+    const clean = String(value).replace(/\D/g, '');
+    if (clean.length === 0) return '';
+    return maskCPF(clean);
+  };
+
+  // Função para exibir telefone formatado
+  const displayPhone = (value) => {
+    if (!value) return 'Não informado';
+    const clean = String(value).replace(/\D/g, '');
+    if (clean.length === 0) return 'Não informado';
+    return maskPhone(clean);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let finalValue = value;
@@ -256,7 +272,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                         maxLength="14"
                       />
                   ) : (
-                      <div className="value-box">{formData.cpf}</div>
+                      <div className="value-box">{displayCPF(formData.cpf)}</div>
                   )}
                 </div>
                 <div className="field-group">
@@ -397,7 +413,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                         maxLength="16"
                     />
                 ) : (
-                    <div className="value-box contact-highlight">{formData.parentPhone || 'Não informado'}</div>
+                    <div className="value-box contact-highlight">{displayPhone(formData.parentPhone)}</div>
                 )}
               </div>
             </div>
