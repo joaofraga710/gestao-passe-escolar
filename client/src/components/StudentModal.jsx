@@ -3,6 +3,7 @@ import '../styles/StudentModal.css';
 import CardGenerator from './CardGenerator'; 
 import { calculateBestRoute } from '../utils/routesDb';
 
+// --- Mantive o seu componente de ícones igualzinho ---
 const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
   const icons = {
     user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
@@ -16,44 +17,64 @@ const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
     alert: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
     camera: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></>,
     users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
-    creditCard: <><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></>
+    creditCard: <><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></>,
+    save: <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>
   };
 
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke={color} 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-      style={style}
-    >
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
       {icons[name]}
     </svg>
   );
 };
 
-const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
+// Adicionei a prop 'onSave'
+const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
   const [showPrint, setShowPrint] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(student ? (student.route || "Rota Indefinida") : "");
   const [suggestedRoute, setSuggestedRoute] = useState(null);
+  
+  // Estado para controlar se estamos editando
   const [isEditing, setIsEditing] = useState(false);
+  // Estado local para guardar os dados enquanto edita
+  const [formData, setFormData] = useState(student || {});
 
   useEffect(() => {
     if (student) {
       setCurrentRoute(student.route || "Rota Indefinida");
       setSuggestedRoute(null);
       setIsEditing(false);
+      setFormData(student); // Reseta os dados ao abrir outro aluno
     }
   }, [student]);
 
   if (!student) return null;
 
+  // --- Funções de Edição ---
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    // Junta os dados do form com a rota atual
+    const finalData = { ...formData, route: currentRoute };
+    
+    // Chama a função do pai para salvar de verdade
+    if (onSave) onSave(finalData);
+    
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setFormData(student); // Volta ao original
+    setCurrentRoute(student.route || "Rota Indefinida");
+    setIsEditing(false);
+  };
+
+  // --- Funções de Rota ---
   const handleSuggestRoute = () => {
-    const result = calculateBestRoute(student.street, student.neighborhood, student.school);
+    const result = calculateBestRoute(formData.street, formData.neighborhood, formData.school);
     if (result) {
       setSuggestedRoute({ found: true, text: result.name, reason: result.reason });
     } else {
@@ -68,17 +89,8 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
     }
   };
 
-  const handleManualEntry = () => {
-    setSuggestedRoute(null); 
-    setIsEditing(true); 
-  };
-
-  const handleSaveManual = () => {
-    setIsEditing(false);
-  };
-
   if (showPrint) {
-    const updatedStudent = { ...student, route: currentRoute };
+    const updatedStudent = { ...formData, route: currentRoute };
     return (
       <CardGenerator 
         student={updatedStudent} 
@@ -91,14 +103,34 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        
+        {/* Cabeçalho com Botões de Ação */}
         <div className="modal-header">
           <div>
-            <h2>Detalhes da Solicitação</h2>
-            <div className="meta-date">Enviado em: {student.date || 'Data não registrada'}</div>
+            <h2>{isEditing ? 'Editando Aluno' : 'Detalhes da Solicitação'}</h2>
+            {!isEditing && <div className="meta-date">Enviado em: {student.date || 'Data não registrada'}</div>}
           </div>
-          <button className="close-btn" onClick={onClose}>
-            <Icon name="close" size={20} />
-          </button>
+          
+          <div className="modal-actions">
+            {isEditing ? (
+              <>
+                <button className="btn-pill btn-secondary-action" onClick={handleCancel} style={{height: 32, fontSize: '0.8rem'}}>
+                  Cancelar
+                </button>
+                <button className="btn-pill btn-primary-action" onClick={handleSave} style={{height: 32, fontSize: '0.8rem'}}>
+                  <Icon name="save" size={16} /> Salvar
+                </button>
+              </>
+            ) : (
+              <button className="icon-btn" onClick={() => setIsEditing(true)} title="Editar" style={{background:'none', border:'none', cursor:'pointer', color:'#8b949e'}}>
+                <Icon name="edit" size={20} />
+              </button>
+            )}
+            
+            <button className="close-btn" onClick={onClose}>
+              <Icon name="close" size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="modal-body">
@@ -112,28 +144,44 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
                 <span style={{fontSize: '0.75rem'}}>Sem Foto</span>
               </div>
             </div>
+            
             <div className="info-col">
               <div className="section-title">
                 <Icon name="idCard" size={16} /> Identificação
               </div>
+              
               <div className="field-group">
                 <label>Nome Completo</label>
-                <div className="value-box" style={{fontWeight:'600', color:'#fff'}}>{student.name}</div>
+                {isEditing ? (
+                  <input className="edit-input" name="name" value={formData.name} onChange={handleInputChange} />
+                ) : (
+                  <div className="value-box" style={{fontWeight:'600', color:'#fff'}}>{formData.name}</div>
+                )}
               </div>
+              
               <div className="grid-2">
                 <div className="field-group">
                   <label>CPF</label>
-                  <div className="value-box">{student.cpf}</div>
+                  {isEditing ? (
+                    <input className="edit-input" name="cpf" value={formData.cpf} onChange={handleInputChange} />
+                  ) : (
+                    <div className="value-box">{formData.cpf}</div>
+                  )}
                 </div>
                 <div className="field-group">
                   <label>Escola Destino</label>
-                  <div className="value-box">{student.school}</div>
+                  {isEditing ? (
+                    <input className="edit-input" name="school" value={formData.school} onChange={handleInputChange} />
+                  ) : (
+                    <div className="value-box">{formData.school}</div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           <hr className="divider" />
+          
           <div>
             <div className="section-title">
               <Icon name="mapPin" size={16} /> Localização e Transporte
@@ -144,9 +192,8 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
                   <div className="route-display">
                       {isEditing ? (
                           <div className="field-group">
-                             <label style={{paddingLeft: '10px'}}>DIGITE A ROTA:</label>
+                             <label style={{paddingLeft: '10px'}}>ROTA (EDITÁVEL):</label>
                              <input 
-                                autoFocus
                                 type="text" 
                                 className="route-input-pill"
                                 value={currentRoute}
@@ -159,22 +206,13 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
                               <div className="suggestion-header">
                                 <Icon name="check" size={14} /> MELHOR ROTA ENCONTRADA:
                               </div>
-                              <div className="suggestion-text">
-                                {suggestedRoute.text}
-                              </div>
-                              <div className="suggestion-reason">
-                                Lógica: {suggestedRoute.reason}
-                              </div>
-                              <div className="suggestion-warning">
-                                <Icon name="alert" size={14} /> Sugestão Lógica. Verifique antes de aceitar.
-                              </div>
+                              <div className="suggestion-text">{suggestedRoute.text}</div>
+                              <div className="suggestion-reason">Lógica: {suggestedRoute.reason}</div>
                           </div>
                       ) 
                       : (
                           <div className="current-route-display">
-                              <div className="route-icon-circle">
-                                <Icon name="bus" size={24} />
-                              </div>
+                              <div className="route-icon-circle"><Icon name="bus" size={24} /></div>
                               <div>
                                 <span className="route-label">Rota Atual</span>
                                 <div className="route-value">{currentRoute}</div>
@@ -183,63 +221,56 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
                       )}
                   </div>
 
-                  <div className="action-buttons">
-                    
-                    {isEditing && (
-                        <button className="btn-pill btn-blue-action" onClick={handleSaveManual}>
-                          Salvar
-                        </button>
-                    )}
-
-                    {!isEditing && suggestedRoute && (
-                        <>
-                           <button className="btn-pill btn-primary-action" onClick={handleAcceptSuggestion}>
-                             <Icon name="check" size={16} /> Aceitar
-                           </button>
-
-                           <button className="btn-pill btn-secondary-action" onClick={handleManualEntry}>
-                             <Icon name="edit" size={14} /> Manual
-                           </button>
-                        </>
-                    )}
-
-                    {!isEditing && !suggestedRoute && (
-                        <button className="btn-pill btn-primary-action" onClick={handleSuggestRoute}>
-                         Sugerir Rota
-                        </button>
-                    )}
-                  </div>
+                  {!isEditing && (
+                    <div className="action-buttons">
+                      {suggestedRoute ? (
+                          <button className="btn-pill btn-primary-action" onClick={handleAcceptSuggestion}>
+                            <Icon name="check" size={16} /> Aceitar
+                          </button>
+                      ) : (
+                          <button className="btn-pill btn-primary-action" onClick={handleSuggestRoute}>
+                           Sugerir Rota
+                          </button>
+                      )}
+                    </div>
+                  )}
                </div>
 
                {suggestedRoute && !suggestedRoute.found && (
-                  <div className="route-error">
-                      <Icon name="close" size={14} /> 
-                      {suggestedRoute.text} 
-                      <button className="link-btn" onClick={handleManualEntry}>
-                        Preencher Manualmente?
-                      </button>
-                  </div>
+                  <div className="route-error"><Icon name="close" size={14} /> {suggestedRoute.text}</div>
                )}
-
             </div>
 
             <div className="grid-3-1" style={{marginTop: '15px'}}>
               <div className="field-group">
                 <label>Rua</label>
-                <div className="value-box">{student.street || 'Não informada'}</div>
+                {isEditing ? (
+                  <input className="edit-input" name="street" value={formData.street} onChange={handleInputChange} />
+                ) : (
+                  <div className="value-box">{formData.street || 'Não informada'}</div>
+                )}
               </div>
               <div className="field-group">
                 <label>Nº</label>
-                <div className="value-box">{student.number || 'S/N'}</div>
+                {isEditing ? (
+                  <input className="edit-input" name="number" value={formData.number} onChange={handleInputChange} />
+                ) : (
+                  <div className="value-box">{formData.number || 'S/N'}</div>
+                )}
               </div>
             </div>
             <div className="field-group" style={{marginTop:'12px'}}>
               <label>Bairro</label>
-              <div className="value-box">{student.neighborhood || 'Não informado'}</div>
+              {isEditing ? (
+                <input className="edit-input" name="neighborhood" value={formData.neighborhood} onChange={handleInputChange} />
+              ) : (
+                <div className="value-box">{formData.neighborhood || 'Não informado'}</div>
+              )}
             </div>
           </div>
 
           <hr className="divider" />
+          
           <div>
             <div className="section-title">
               <Icon name="users" size={16} /> Responsável
@@ -247,23 +278,31 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted }) => {
             <div className="grid-2">
               <div className="field-group">
                 <label>Nome</label>
-                <div className="value-box">{student.parentName || 'Não informado'}</div>
+                {isEditing ? (
+                  <input className="edit-input" name="parentName" value={formData.parentName} onChange={handleInputChange} />
+                ) : (
+                  <div className="value-box">{formData.parentName || 'Não informado'}</div>
+                )}
               </div>
               <div className="field-group">
                 <label>Contato</label>
-                <div className="value-box contact-highlight">{student.parentPhone || 'Não informado'}</div>
+                {isEditing ? (
+                  <input className="edit-input" name="parentPhone" value={formData.parentPhone} onChange={handleInputChange} />
+                ) : (
+                  <div className="value-box contact-highlight">{formData.parentPhone || 'Não informado'}</div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         <div className="modal-footer">
-          <button className="btn-footer btn-footer-cancel" onClick={onClose}>
-            Fechar
-          </button>
-          <button className="btn-footer btn-footer-primary" onClick={() => setShowPrint(true)}>
-            <Icon name="creditCard" size={18} /> Gerar Carteirinha
-          </button>
+          <button className="btn-footer btn-footer-cancel" onClick={onClose}>Fechar</button>
+          {!isEditing && (
+            <button className="btn-footer btn-footer-primary" onClick={() => setShowPrint(true)}>
+              <Icon name="creditCard" size={18} /> Gerar Carteirinha
+            </button>
+          )}
         </div>
       </div>
     </div>
