@@ -84,11 +84,11 @@ const SingleCard = ({ student, styles, base64Background, photoSrc }) => {
           <img src={photoSrc} alt="Aluno" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : <div style={{width:'100%', height:'100%', background:'#e5e7eb'}}></div>}
       </div>
-      <div style={{ ...blueTextStyle, top: '154px', left: '67px', fontSize: '14px', textTransform: 'uppercase', width: '216px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
-      <div style={{ ...blueTextStyle, top: '175px', left: '96px', fontSize: '14px' }}>{maskCPF(student.cpf) || '---'}</div>
-      <div style={{ ...blueTextStyle, top: '197px', width: '216px', fontSize: '14px' }}>{student.parentName || '---'}</div>
-      <div style={{ ...blueTextStyle, top: '218px', color: '#d32f2f', width: '216px', left: '65px', fontSize: '14px' }}>{student.route || '---'}</div>
-      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '14px', fontFamily: '"Arial", sans-serif', top: '271px', left: '81px', zIndex: 10, letterSpacing: '0.5px' }}>{maskPhone(student.parentPhone) || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '152px', left: '67px', fontSize: '14px', textTransform: 'uppercase', width: '216px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
+      <div style={{ ...blueTextStyle, top: '173px', left: '96px', fontSize: '14px' }}>{maskCPF(student.cpf) || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '195px', width: '216px', fontSize: '14px' }}>{student.parentName || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '216px', color: '#d32f2f', width: '216px', left: '65px', fontSize: '14px' }}>{student.route || '---'}</div>
+      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '14px', fontFamily: '"Arial", sans-serif', top: '269px', left: '81px', zIndex: 10, letterSpacing: '0.5px' }}>{maskPhone(student.parentPhone) || '---'}</div>
     </div>
   );
 };
