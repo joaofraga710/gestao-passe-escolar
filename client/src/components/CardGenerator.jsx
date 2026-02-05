@@ -68,8 +68,8 @@ const maskPhone = (value) => {
 
 const SingleCard = ({ student, styles, base64Background, photoSrc }) => {
   const blueTextStyle = {
-    position: 'absolute', color: '#003366', fontWeight: 'bold', fontSize: '13px',
-    fontFamily: '"Arial", sans-serif', whiteSpace: 'nowrap', left: '125px', zIndex: 10, letterSpacing: '0.5px',
+    position: 'absolute', color: '#003366', fontWeight: 'bold', fontSize: '10px',
+    fontFamily: '"Arial", sans-serif', whiteSpace: 'nowrap', left: '94px', zIndex: 10, letterSpacing: '0.5px',
   };
 
   return (
@@ -79,16 +79,16 @@ const SingleCard = ({ student, styles, base64Background, photoSrc }) => {
           <img src={base64Background} alt="Fundo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         ) : <div style={{width:'100%', height:'100%', background: '#f0f0f0'}}></div>}
       </div>
-      <div style={{ position: 'absolute', top: '90px', left: '375px', width: '135px', height: '165px', backgroundColor: '#e5e7eb', overflow: 'hidden', zIndex: 5 }}>
+      <div style={{ position: 'absolute', top: '67.5px', left: '281px', width: '101px', height: '124px', backgroundColor: '#e5e7eb', overflow: 'hidden', zIndex: 5 }}>
         {photoSrc ? (
           <img src={photoSrc} alt="Aluno" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : <div style={{width:'100%', height:'100%', background:'#e5e7eb'}}></div>}
       </div>
-      <div style={{ ...blueTextStyle, top: '163px', left: '75px', fontSize: '16px', textTransform: 'uppercase', width: '240px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
-      <div style={{ ...blueTextStyle, top: '187px', left: '107px', fontSize: '16px' }}>{maskCPF(student.cpf) || '---'}</div>
-      <div style={{ ...blueTextStyle, top: '210.5px', width: '240px', fontSize: '16px' }}>{student.parentName || '---'}</div>
-      <div style={{ ...blueTextStyle, top: '234.5px', color: '#d32f2f', width: '240px', left: '72px', fontSize: '16px' }}>{student.route || '---'}</div>
-      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '16px', fontFamily: '"Arial", sans-serif', top: '293.5px', left: '90px', zIndex: 10, letterSpacing: '0.5px' }}>{maskPhone(student.parentPhone) || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '122px', left: '56px', fontSize: '12px', textTransform: 'uppercase', width: '180px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
+      <div style={{ ...blueTextStyle, top: '140px', left: '80px', fontSize: '12px' }}>{maskCPF(student.cpf) || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '158px', width: '180px', fontSize: '12px' }}>{student.parentName || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '176px', color: '#d32f2f', width: '180px', left: '54px', fontSize: '12px' }}>{student.route || '---'}</div>
+      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '12px', fontFamily: '"Arial", sans-serif', top: '220px', left: '67px', zIndex: 10, letterSpacing: '0.5px' }}>{maskPhone(student.parentPhone) || '---'}</div>
     </div>
   );
 };
@@ -236,10 +236,10 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
         <div style={styles.previewWrapper} className="fade-in">
           <div style={{...styles.a4Page, paddingTop: CONFIG.marginTop}}>
             <div style={{display: 'flex', width: '100%', justifyContent: 'center', gap: '0px'}}>
-              <div style={{...styles.cardWrapper, zoom: 1}}>
+              <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
                 <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
               </div>
-              <div style={{...styles.cardWrapper, zoom: 1}}>
+              <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
                 <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
               </div>
             </div>
@@ -336,7 +336,7 @@ const styles = {
   confirmText: { margin: '0 0 24px 0', color: theme.textSecondary, fontSize: '0.9rem', lineHeight: '1.5' },
   confirmActions: { display: 'flex', justifyContent: 'flex-end', gap: '12px' },
   a4Page: { width: '210mm', height: '297mm', background: 'white', display: 'flex', justifyContent: 'center' },
-  cardWrapper: { width: '540px', height: '340px', position: 'relative' },
+  cardWrapper: { width: '405px', height: '255px', position: 'relative' },
   cardContainer: { width: '100%', height: '100%', position: 'relative', overflow: 'hidden' },
 };
 
