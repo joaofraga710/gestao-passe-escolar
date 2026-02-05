@@ -7,6 +7,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -29,10 +30,14 @@ const Login = () => {
       return;
     }
 
+    setIsLoading(true);
+    setError('');
+
     login(username, password).then((success) => {
       if (success) {
         navigate('/pendentes');
       } else {
+        setIsLoading(false);
         setError('Credenciais inválidas.');
       }
     });
@@ -71,8 +76,15 @@ const Login = () => {
 
           {error && <div className="error-msg animate-shake">{error}</div>}
 
-          <button type="submit" className="login-btn animate-pulse-hover">
-            Entrar no Sistema
+          <button type="submit" className="login-btn animate-pulse-hover" disabled={isLoading}>
+            {isLoading ? (
+              <span className="loading-spinner">
+                <span className="spinner"></span>
+                Autenticando...
+              </span>
+            ) : (
+              'Entrar no Sistema'
+            )}
           </button>
         </form>
         
