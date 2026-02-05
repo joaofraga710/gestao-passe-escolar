@@ -40,14 +40,14 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <div className="login-box">
+      <div className="login-box animate-slide-up">
         <div className="login-header">
-          <div className="logo-icon"></div>
-          <h1>Gestão de Carteirinhas</h1>
-          <p></p>
+          <div className="logo-icon animate-float"></div>
+          <h1 className="animate-fade-in">Gestão de Carteirinhas</h1>
+          <p className="animate-fade-in-delay"></p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form animate-fade-in-delay-2">
           <div className="input-group">
             <label>Usuário</label>
             <input 
@@ -69,9 +69,9 @@ const Login = () => {
             />
           </div>
 
-          {error && <div className="error-msg">{error}</div>}
+          {error && <div className="error-msg animate-shake">{error}</div>}
 
-          <button type="submit" className="login-btn">
+          <button type="submit" className="login-btn animate-pulse-hover">
             Entrar no Sistema
           </button>
         </form>
