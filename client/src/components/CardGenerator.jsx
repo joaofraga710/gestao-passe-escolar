@@ -69,7 +69,7 @@ const maskPhone = (value) => {
 const SingleCard = ({ student, styles, base64Background, photoSrc }) => {
   const blueTextStyle = {
     position: 'absolute', color: '#003366', fontWeight: 'bold', fontSize: '11px',
-    fontFamily: '"Arial", sans-serif', whiteSpace: 'nowrap', left: '110px', zIndex: 10, letterSpacing: '0.5px',
+    fontFamily: '"Arial", sans-serif', whiteSpace: 'nowrap', left: '111px', zIndex: 10, letterSpacing: '0.5px',
   };
 
   return (
@@ -79,16 +79,16 @@ const SingleCard = ({ student, styles, base64Background, photoSrc }) => {
           <img src={base64Background} alt="Fundo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         ) : <div style={{width:'100%', height:'100%', background: '#f0f0f0'}}></div>}
       </div>
-      <div style={{ position: 'absolute', top: '79px', left: '329px', width: '118px', height: '145px', backgroundColor: '#e5e7eb', overflow: 'hidden', zIndex: 5 }}>
+      <div style={{ position: 'absolute', top: '80px', left: '330px', width: '119px', height: '146px', backgroundColor: '#e5e7eb', overflow: 'hidden', zIndex: 5 }}>
         {photoSrc ? (
           <img src={photoSrc} alt="Aluno" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : <div style={{width:'100%', height:'100%', background:'#e5e7eb'}}></div>}
       </div>
-      <div style={{ ...blueTextStyle, top: '143px', left: '65px', fontSize: '14px', textTransform: 'uppercase', width: '211px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
-      <div style={{ ...blueTextStyle, top: '164px', left: '93px', fontSize: '14px' }}>{maskCPF(student.cpf) || '---'}</div>
-      <div style={{ ...blueTextStyle, top: '185px', width: '211px', fontSize: '14px' }}>{student.parentName || '---'}</div>
-      <div style={{ ...blueTextStyle, top: '206px', color: '#d32f2f', width: '211px', left: '63px', fontSize: '14px' }}>{student.route || '---'}</div>
-      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '14px', fontFamily: '"Arial", sans-serif', top: '258px', left: '78px', zIndex: 10, letterSpacing: '0.5px' }}>{maskPhone(student.parentPhone) || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '144px', left: '66px', fontSize: '14px', textTransform: 'uppercase', width: '212px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
+      <div style={{ ...blueTextStyle, top: '165px', left: '94px', fontSize: '14px' }}>{maskCPF(student.cpf) || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '186px', width: '212px', fontSize: '14px' }}>{student.parentName || '---'}</div>
+      <div style={{ ...blueTextStyle, top: '207px', color: '#d32f2f', width: '212px', left: '64px', fontSize: '14px' }}>{student.route || '---'}</div>
+      <div style={{ position: 'absolute', color: '#FFFFFF', fontWeight: 'bold', fontSize: '14px', fontFamily: '"Arial", sans-serif', top: '259px', left: '79px', zIndex: 10, letterSpacing: '0.5px' }}>{maskPhone(student.parentPhone) || '---'}</div>
     </div>
   );
 };
@@ -336,7 +336,7 @@ const styles = {
   confirmText: { margin: '0 0 24px 0', color: theme.textSecondary, fontSize: '0.9rem', lineHeight: '1.5' },
   confirmActions: { display: 'flex', justifyContent: 'flex-end', gap: '12px' },
   a4Page: { width: '210mm', height: '297mm', background: 'white', display: 'flex', justifyContent: 'center' },
-  cardWrapper: { width: '472px', height: '299px', position: 'relative' },
+  cardWrapper: { width: '474px', height: '301px', position: 'relative' },
   cardContainer: { width: '100%', height: '100%', position: 'relative', overflow: 'hidden' },
 };
 
