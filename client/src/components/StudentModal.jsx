@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import '../styles/StudentModal.css'; 
 import CardGenerator from './CardGenerator'; 
 // --- IMPORTAÇÕES DO NOVO SISTEMA DE GPS ---
-import { BUS_ROUTES } from '../utils/routesCoordinates';
+import { BUS_ROUTES } from '../utils/busRoutes';
 import { getCoordinatesFromAddress, findNearestRoute } from '../utils/gpsUtils';
 
 const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
