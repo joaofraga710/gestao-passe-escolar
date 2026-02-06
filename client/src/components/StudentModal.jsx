@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import '../styles/StudentModal.css'; 
 import CardGenerator from './CardGenerator'; 
-import { calculateBestRoute } from '../utils/routesDb';
+// --- IMPORTAÇÕES DO NOVO SISTEMA DE GPS ---
+import { BUS_ROUTES } from '../utils/routesCoordinates';
+import { getCoordinatesFromAddress, findNearestRoute } from '../utils/gpsUtils';
 
 const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
   const icons = {
@@ -120,15 +122,38 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  const handleSuggestRoute = () => {
-    const result = calculateBestRoute(formData.street, formData.neighborhood, formData.school);
-    if (result) {
-      setSuggestedRoute({ found: true, text: result.name, reason: result.reason });
-      setIsManualRoute(false);
+  // --- NOVA LÓGICA DE SUGESTÃO DE ROTA VIA GPS ---
+  const handleSuggestRoute = async () => {
+    // 1. Feedback visual
+    setSuggestedRoute({ found: false, text: "Buscando localização via satélite..." });
+
+    // 2. Busca as coordenadas da casa
+    const coords = await getCoordinatesFromAddress(
+        formData.street, 
+        formData.number, 
+        formData.neighborhood
+    );
+
+    // 3. Validação se o endereço existe
+    if (!coords) {
+        setSuggestedRoute({ 
+            found: false, 
+            text: "Endereço não encontrado no mapa. Verifique rua, número e bairro." 
+        });
+        return;
+    }
+
+    // 4. Calcula qual rota passa perto
+    const result = findNearestRoute(coords, BUS_ROUTES);
+
+    if (result.found) {
+        setSuggestedRoute({ found: true, text: result.name, reason: result.reason });
+        setIsManualRoute(false);
     } else {
-      setSuggestedRoute({ found: false, text: "Nenhuma rota compatível." });
+        setSuggestedRoute({ found: false, text: result.text });
     }
   };
+  // -----------------------------------------------
 
   const handleAcceptSuggestion = () => {
     if (suggestedRoute?.found) {
