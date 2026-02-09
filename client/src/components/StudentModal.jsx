@@ -122,29 +122,32 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  // --- NOVA LÓGICA DE SUGESTÃO DE ROTA VIA GPS ---
   const handleSuggestRoute = async () => {
-    // 1. Feedback visual
+    if (!formData.school) {
+        setSuggestedRoute({ 
+            found: false, 
+            text: "Erro: O campo 'Escola Destino' está vazio. Preencha antes de buscar." 
+        });
+        return;
+    }
+
     setSuggestedRoute({ found: false, text: "Buscando localização via satélite..." });
 
-    // 2. Busca as coordenadas da casa
     const coords = await getCoordinatesFromAddress(
         formData.street, 
         formData.number, 
         formData.neighborhood
     );
 
-    // 3. Validação se o endereço existe
     if (!coords) {
         setSuggestedRoute({ 
             found: false, 
-            text: "Endereço não encontrado no mapa. Verifique rua, número e bairro." 
+            text: "Endereço não encontrado no mapa. Verifique rua e número." 
         });
         return;
     }
 
-    // 4. Calcula qual rota passa perto
-    const result = findNearestRoute(coords, BUS_ROUTES);
+    const result = findNearestRoute(coords, BUS_ROUTES, formData.school);
 
     if (result.found) {
         setSuggestedRoute({ found: true, text: result.name, reason: result.reason });
