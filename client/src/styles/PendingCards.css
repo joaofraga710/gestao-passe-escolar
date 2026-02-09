@@ -103,15 +103,18 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid rgba(248, 81, 73, 0.25);
-  background: rgba(248, 81, 73, 0.1);
-  color: #f85149;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   z-index: 2;
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
 }
 
 .trash-btn svg {
@@ -120,8 +123,14 @@
 }
 
 .trash-btn:hover {
-  background: rgba(248, 81, 73, 0.18);
+  background: rgba(255, 255, 255, 0.12);
   transform: translateY(-1px);
+}
+
+.student-card:hover .trash-btn {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .student-card:hover {
