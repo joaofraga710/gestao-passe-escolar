@@ -1,4 +1,4 @@
-import { SCHOOL_LOCATIONS } from './gpsData';
+import { SCHOOL_LOCATIONS } from './busRoutes';
 
 export const getCoordinatesFromAddress = async (address, number, neighborhood, city = "Imbé", state = "RS") => {
   try {
