@@ -50,6 +50,17 @@ const Navbar = () => {
           </svg>
           Calcular Rota
         </NavLink>
+
+        <NavLink to="/lixeira" className={({ isActive }) => `nav-btn ${isActive ? "active" : ""}`}>
+          <svg className="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M6 6L7 20C7.04762 20.5523 7.44772 21 8 21H16C16.5523 21 16.9524 20.5523 17 20L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M10 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M14 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          Lixeira
+        </NavLink>
       </div>
 
       <div className="sidebar-footer">

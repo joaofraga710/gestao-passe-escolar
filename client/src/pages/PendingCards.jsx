@@ -3,6 +3,7 @@ import '../styles/PendingCards.css';
 import StudentModal from '../components/StudentModal';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { addToTrash, getTrashIds } from '../utils/trashStorage';
 
 const normalizeText = (text) => {
   if (!text) return "";
@@ -99,7 +100,7 @@ const PendingCards = () => {
     }
   };
 
-  useEffect(() => {
+  const loadPendingData = () => {
     setLoading(true);
     setLoadingMessage('Carregando carteirinhas...');
     
@@ -171,7 +172,8 @@ const PendingCards = () => {
 
         // Filtrar carteirinhas que já foram emitidas (do Supabase)
         const issuedIdsSet = new Set(issuedIds.map(String));
-        const pendingOnly = formattedData.filter(student => !issuedIdsSet.has(String(student.id)));
+        const trashedIds = getTrashIds();
+        const pendingOnly = formattedData.filter(student => !issuedIdsSet.has(String(student.id)) && !trashedIds.has(String(student.id)));
         setStudents(pendingOnly);
         setLoading(false);
         clearTimeout(timer1);
@@ -189,6 +191,13 @@ const PendingCards = () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
+  };
+
+  useEffect(() => {
+    loadPendingData();
+    const handleTrashUpdate = () => loadPendingData();
+    window.addEventListener('trash_updated', handleTrashUpdate);
+    return () => window.removeEventListener('trash_updated', handleTrashUpdate);
   }, []);
 
   const handleLinkClick = (e) => {
@@ -242,6 +251,16 @@ const PendingCards = () => {
     );
   });
 
+  const handleMoveToTrash = (e, student) => {
+    e.stopPropagation();
+    addToTrash(student);
+    setStudents(prev => prev.filter(s => String(s.id) !== String(student.id)));
+    if (selectedStudent && String(selectedStudent.id) === String(student.id)) {
+      setSelectedStudent(null);
+    }
+    window.dispatchEvent(new Event('trash_updated'));
+  };
+
   return (
     <div ref={containerRef}>
       <div className="page-header gsap-header">
@@ -284,6 +303,19 @@ const PendingCards = () => {
             const badge = getBadgeStyle(student.detectionType);
             return (
               <div key={student.id} className="student-card" onClick={() => setSelectedStudent(student)}>
+                <button
+                  className="trash-btn"
+                  title="Mover para lixeira"
+                  onClick={(e) => handleMoveToTrash(e, student)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 6H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M6 6L7 20C7.04762 20.5523 7.44772 21 8 21H16C16.5523 21 16.9524 20.5523 17 20L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M10 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M14 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
                 <div className="card-header">
                   <div style={{width:48, height:48, borderRadius:'50%', overflow:'hidden', flexShrink:0, background:'#2d333b', border:'1px solid var(--border-color)'}}>
                     {student.photo ? <img src={student.photo} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} referrerPolicy="no-referrer" onError={(e)=>{e.target.style.display='none'; if(e.target.nextSibling) e.target.nextSibling.style.display='flex'}} /> : null}

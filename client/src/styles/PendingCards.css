@@ -96,6 +96,34 @@
   overflow: hidden;
 }
 
+.trash-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 81, 73, 0.25);
+  background: rgba(248, 81, 73, 0.1);
+  color: #f85149;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.trash-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.trash-btn:hover {
+  background: rgba(248, 81, 73, 0.18);
+  transform: translateY(-1px);
+}
+
 .student-card:hover {
   transform: translateY(-4px);
   border-color: rgba(255, 255, 255, 0.2);
