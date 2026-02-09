@@ -1,25 +1,36 @@
-import { SCHOOL_LOCATIONS } from './busRoutes';
+import { SCHOOL_LOCATIONS } from './gpsData';
+
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 export const getCoordinatesFromAddress = async (address, number, neighborhood, city = "Imbé", state = "RS") => {
+  if (!GOOGLE_API_KEY) {
+    console.error("ERRO CRÍTICO: Chave da API do Google não encontrada no .env!");
+    return null;
+  }
+
   try {
-    const query = `${address}, ${number}, ${city}, ${state}, Brazil`;
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`;
+    const query = `${address}, ${number} - ${neighborhood}, ${city} - ${state}, Brazil`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}`;
     
-    const response = await fetch(url, { headers: { 'User-Agent': 'SchoolPassSystem/1.0' } });
+    const response = await fetch(url);
     const data = await response.json();
 
-    if (data && data.length > 0) {
-      return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+    if (data.status === "OK") {
+      const location = data.results[0].geometry.location;
+      console.log("📍 Google Maps encontrou:", location.lat, location.lng);
+      return { lat: location.lat, lon: location.lng };
+    } else {
+      console.error("Erro Google Maps:", data.status, data.error_message);
+      return null;
     }
-    return null;
   } catch (error) {
-    console.error("Erro no Geocoding:", error);
+    console.error("Erro na requisição de Geocoding:", error);
     return null;
   }
 };
 
 const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
-  const R = 6371e3; 
+  const R = 6371e3;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
   const a =
@@ -39,7 +50,7 @@ export const findNearestRoute = (studentCoords, allRoutes, schoolName, maxDistan
   if (!schoolCoords) {
     return {
       found: false,
-      text: `Localização da escola "${schoolName}" não cadastrada.`,
+      text: `Localização da escola "${schoolName}" não cadastrada no sistema.`,
       errorType: 'SCHOOL_NOT_FOUND'
     };
   }
@@ -69,6 +80,7 @@ export const findNearestRoute = (studentCoords, allRoutes, schoolName, maxDistan
 
     const isHomeNear = distToHome <= maxDistanceMeters;
     const isSchoolNear = distToSchool <= 800;
+    
     const isDirectionCorrect = bestHomeStopIndex < bestSchoolStopIndex;
 
     if (isHomeNear && isSchoolNear && isDirectionCorrect) {
