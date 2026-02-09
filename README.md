@@ -1,108 +1,39 @@
-# School Transport System 
+# School Transport System - Documentação Técnica
 
-Sistema de gestão de carteirinhas escolares com autenticação segura.
+Sistema de gestão de transporte e emissão de carteirinhas escolares.
 
-## Estrutura do Projeto
+## Arquitetura
 
-```
-school-transport-system/
-├── client/                    # Frontend (React + Vite)
-│   ├── src/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── server/                    # Backend (Node.js + Express)
-│   ├── src/
-│   │   ├── routes/           # Rotas da API
-│   │   ├── controllers/       # Lógica de negócio
-│   │   ├── middleware/        # Autenticação, erros, etc
-│   │   ├── db/                # Base de dados
-│   │   └── server.js          # Servidor principal
-│   ├── package.json
-│   └── .env                   # Variáveis de ambiente
-│
-├── docs/                      # Documentação
-├── scripts/                   # Scripts úteis
-└── SECURITY_CHECKLIST.md      # Checklist de segurança
-```
+O projeto é dividido em duas partes independentes (Monorepo):
 
-## Começar Rápido
+- **`client/` (Frontend):** Desenvolvido em React + Vite. Responsável pela interface, cálculos de GPS e geração do PDF.
+- **`server/` (Backend):** Desenvolvido em Node.js + Express. Responsável pela API, autenticação JWT e persistência de dados.
 
-### Backend
+---
 
-```bash
-cd server
-npm install
-npm run dev
-```
+## Lógica Principal (Frontend)
 
-Servidor rodará em: `http://localhost:3000`
+### 1. Sistema de Roteirização (`src/utils/gpsUtils.js`)
 
-### Frontend
+O algoritmo implementado segue 3 etapas para garantir a precisão:
 
-```bash
-cd client
-npm install
-npm run dev
-```
+1. **Geocodificação:** Converte o endereço textual do aluno em coordenadas exatas (Latitude/Longitude) utilizando a **Google Maps Geocoding API**.
+2. **Proximidade (Haversine):** Calcula a distância matemática entre a residência do aluno e todas as paradas disponíveis em todas as rotas.
+3. **Validação de Sentido (Índice Sequencial):**
+   - O sistema identifica o índice da parada na **Casa** (X).
+   - O sistema identifica o índice da parada na **Escola** (Y).
+   
+   > **Regra de Validação:** A rota só é considerada válida se `Índice Casa < Índice Escola`. Isso assegura logicamente que o ônibus passará na residência *antes* de chegar ao destino escolar.
 
-Aplicação rodará em: `http://localhost:5173`
 
-## Login Padrão
 
-- **Usuário:** `admin`
-- **Senha:** `admin123`
+### 2. Geração de Carteirinhas (`src/components/CardGenerator.jsx`)
 
-> Altere essas credenciais em produção!
+O processo de geração do documento PDF ocorre inteiramente no navegador do cliente (`client-side`), evitando sobrecarga no servidor:
 
-## Documentação
-
-- [Autenticação](./server/AUTHENTICATION.md) - Fluxo de login e criação de usuários
-- [Checklist de Segurança](./SECURITY_CHECKLIST.md) - Itens críticos para produção
-- [API Documentation](./docs/API_Documentation.md) - Endpoints da API
-
-## Tecnologias
-
-**Frontend:**
-- React 19
-- Vite
-- React Router
-- CSS3
-
-**Backend:**
-- Node.js
-- Express
-- JWT (JSON Web Tokens)
-- bcryptjs (Hash de senhas)
-- express-rate-limit (Rate limiting)
-
-## Variáveis de Ambiente
-
-### Server (.env)
-```
-PORT=3000
-NODE_ENV=development
-JWT_SECRET=sua_chave_muito_segura
-JWT_EXPIRE=1h
-CORS_ORIGIN=http://localhost:5173
-```
-
-### Client (.env.local)
-```
-VITE_API_URL=http://localhost:3000
-```
-
-## Contribuindo
-
-1. Crie uma branch para sua feature: `git checkout -b feature/MinhaFeature`
-2. Commit suas mudanças: `git commit -m 'Add MinhaFeature'`
-3. Push para a branch: `git push origin feature/MinhaFeature`
-4. Abra um Pull Request
-
-## Licença
-
-MIT
-
-## 📧 Contato
-
-Secretaria da Educação de Imbé - 2026
+- **Crop de Imagem:** Utiliza a biblioteca `react-easy-crop` para garantir que a foto do aluno esteja na proporção 3x4 correta e centralizada.
+- **Seleção de Fundo Condicional:**
+  - O sistema verifica o nome da escola selecionada no cadastro.
+  - **Escolas Estaduais:** (ex: *IEE Barão, 9 de Maio*) carregam automaticamente o asset `fundo-carteirinha-estadual.png`.
+  - **Demais Escolas:** Utilizam o asset padrão `fundo-carteirinha.png`.
+- **Renderização:** Utiliza `html2canvas` para rasterizar o elemento HTML visual e `jspdf` para converter essa imagem em um arquivo PDF A4 formatado para impressão.
