@@ -1,8 +1,3 @@
-/**
- * Utilidades de segurança
- */
-
-// Gera um token CSRF simples (deve ser validado no backend)
 export const generateCSRFToken = () => {
   const token = sessionStorage.getItem('csrf_token');
   if (token) return token;
@@ -15,12 +10,10 @@ export const generateCSRFToken = () => {
   return newToken;
 };
 
-// Obtém o token CSRF armazenado
 export const getCSRFToken = () => {
   return sessionStorage.getItem('csrf_token') || generateCSRFToken();
 };
 
-// Sanitiza strings para prevenir XSS
 export const sanitizeHTML = (str) => {
   if (typeof str !== 'string') return '';
   
@@ -29,7 +22,6 @@ export const sanitizeHTML = (str) => {
   return div.innerHTML;
 };
 
-// Headers padrão com CSRF token para requisições
 export const getSecureHeaders = (token) => {
   return {
     'Content-Type': 'application/json',

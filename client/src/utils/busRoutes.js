@@ -1,3 +1,20 @@
+export const SCHOOL_LOCATIONS = {
+  "EMEF Prof. Clelia de Moraes": { lat: -29.943351, lon: -50.116434 },
+  "EMEF Olavo Bilac": { lat: -29.943413, lon: -50.116467 },
+  "EMEF Manoel Mendes": { lat: -29.954896, lon: -50.130160 },
+  "EMEF Norberto Martinho Cardoso": { lat: -29.933298, lon: -50.119415 },
+  "EMEI Tia Marica": { lat: -29.906953, lon: -50.100250 },
+  "EMEF Estado de Santa Catarina": { lat: -29.968939, lon: -50.137475 },
+  "EMEF Tiradentes": { lat: -29.960294, lon: -50.132112 },
+  "EMEI Chapeuzinho Vermelho": { lat: -29.969432, lon: -50.137419 },
+  "EMEI Jardelino Peroni": { lat: -29.972293, lon: -50.121555 },
+  "EMEI Peixinho Dourado": { lat: -29.915649, lon: -50.106480 },
+  "EMEI Prof Iara Martins": { lat: -29.926942, lon: -50.108236 },
+  "EMEI Prof Pedrinha": { lat: -29.951493, lon: -50.132330 },
+  "EMEI Vo Jovino": { lat: -29.898739, lon: -50.092756 },
+  "EMEI Vó Rosa": { lat: -29.933130, lon: -50.118119 }
+};
+
 export const BUS_ROUTES = [
   {
     id: "rota-12",
@@ -111,7 +128,7 @@ id: "rota-13",
   },
   {
     id: "rota-15",
-    name: "Rota 15 - Courhasa",
+    name: "Rota 15",
     stops: [
       { lat: -29.903565, lon: -50.092916 },
       { lat: -29.902368, lon: -50.097004 },
@@ -137,7 +154,7 @@ id: "rota-13",
   },
   {
     id: "rota-16",
-    name: "Rota 16 - Norte",
+    name: "Rota 16",
     stops: [
       { lat: -29.926814, lon: -50.108055 },
       { lat: -29.928312, lon: -50.103948 },
@@ -198,7 +215,7 @@ id: "rota-13",
   },
   {
     id: "rota-17",
-    name: "Rota 17 - Presidente",
+    name: "Rota 17",
     stops: [
       { lat: -29.897514, lon: -50.089575 },
       { lat: -29.895533, lon: -50.088159 },
@@ -255,7 +272,7 @@ id: "rota-13",
   },
   {
     id: "rota-18",
-    name: "Rota 18 - Imbé",
+    name: "Rota 18",
     stops: [
       { lat: -29.960202, lon: -50.132265 },
       { lat: -29.960181, lon: -50.132530 },

@@ -1,14 +1,10 @@
-// src/utils/gpsUtils.js
+import { SCHOOL_LOCATIONS } from './gpsData';
 
-// 1. Função para converter Endereço -> Coordenadas
-// O ERRO ESTAVA AQUI: Precisa ter "export" na frente
 export const getCoordinatesFromAddress = async (address, number, neighborhood, city = "Imbé", state = "RS") => {
   try {
-    // Monta a busca: "Rua X, 123, Bairro Y, Cidade, Estado"
-    const query = `${address}, ${number}, ${neighborhood}, ${city}, ${state}, Brazil`;
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+    const query = `${address}, ${number}, ${city}, ${state}, Brazil`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`;
     
-    // O cabeçalho User-Agent é boa prática
     const response = await fetch(url, { headers: { 'User-Agent': 'SchoolPassSystem/1.0' } });
     const data = await response.json();
 
@@ -22,9 +18,8 @@ export const getCoordinatesFromAddress = async (address, number, neighborhood, c
   }
 };
 
-// 2. Matemática para calcular distância (Interna, não precisa de export)
 const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
-  const R = 6371e3; // Raio da terra em metros
+  const R = 6371e3; 
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
   const a =
@@ -35,35 +30,62 @@ const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
   return R * c; 
 };
 
-// 3. Função principal que acha a melhor rota
-// ESSA TAMBÉM PRECISA DO "export"
-export const findNearestRoute = (studentCoords, allRoutes, maxDistanceMeters = 600) => {
+export const findNearestRoute = (studentCoords, allRoutes, schoolName, maxDistanceMeters = 600) => {
   let bestRoute = null;
-  let shortestDistance = Infinity;
+  let shortestDistanceToHome = Infinity;
 
-  allRoutes.forEach(route => {
-    route.stops.forEach(stop => {
-      const distance = getDistanceFromLatLonInMeters(
-        studentCoords.lat, 
-        studentCoords.lon, 
-        stop.lat, 
-        stop.lon
-      );
+  const schoolCoords = SCHOOL_LOCATIONS[schoolName];
 
-      if (distance < shortestDistance) {
-        shortestDistance = distance;
-        bestRoute = route;
-      }
-    });
-  });
-
-  if (shortestDistance <= maxDistanceMeters && bestRoute) {
+  if (!schoolCoords) {
     return {
-      found: true,
-      name: bestRoute.name,
-      reason: `Detectado a ${Math.round(shortestDistance)} metros do trajeto.`
+      found: false,
+      text: `Localização da escola "${schoolName}" não cadastrada.`,
+      errorType: 'SCHOOL_NOT_FOUND'
     };
   }
 
-  return { found: false, text: `Nenhuma rota próxima (Mínimo: ${Math.round(shortestDistance)}m).` };
+  allRoutes.forEach(route => {
+    let bestHomeStopIndex = -1;
+    let distToHome = Infinity;
+
+    route.stops.forEach((stop, index) => {
+      const d = getDistanceFromLatLonInMeters(studentCoords.lat, studentCoords.lon, stop.lat, stop.lon);
+      if (d < distToHome) {
+        distToHome = d;
+        bestHomeStopIndex = index;
+      }
+    });
+
+    let bestSchoolStopIndex = -1;
+    let distToSchool = Infinity;
+
+    route.stops.forEach((stop, index) => {
+      const d = getDistanceFromLatLonInMeters(schoolCoords.lat, schoolCoords.lon, stop.lat, stop.lon);
+      if (d < distToSchool) {
+        distToSchool = d;
+        bestSchoolStopIndex = index;
+      }
+    });
+
+    const isHomeNear = distToHome <= maxDistanceMeters;
+    const isSchoolNear = distToSchool <= 800;
+    const isDirectionCorrect = bestHomeStopIndex < bestSchoolStopIndex;
+
+    if (isHomeNear && isSchoolNear && isDirectionCorrect) {
+      if (distToHome < shortestDistanceToHome) {
+        shortestDistanceToHome = distToHome;
+        bestRoute = route;
+      }
+    }
+  });
+
+  if (bestRoute) {
+    return {
+      found: true,
+      name: bestRoute.name,
+      reason: `Embarque a ${Math.round(shortestDistanceToHome)}m de casa. Sentido correto até ${schoolName}.`
+    };
+  }
+
+  return { found: false, text: "Nenhuma rota encontrada que passe na casa ANTES da escola." };
 };
