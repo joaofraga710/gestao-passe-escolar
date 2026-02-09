@@ -12,7 +12,10 @@ export const SCHOOL_LOCATIONS = {
   "EMEI Prof Iara Martins": { lat: -29.926942, lon: -50.108236 },
   "EMEI Prof Pedrinha": { lat: -29.951493, lon: -50.132330 },
   "EMEI Vo Jovino": { lat: -29.898739, lon: -50.092756 },
-  "EMEI Vó Rosa": { lat: -29.933130, lon: -50.118119 }
+  "EMEI Vó Rosa": { lat: -29.933130, lon: -50.118119 },
+  "EEEM Reinaldo Vacari": { lat: -29.902895969806906, lon: -50.09283970333692 },
+  "EEEM 9 de maio": { lat: -29.971835390740058, lon: -50.137757780551325 },
+  "IEE Barão de Tramandaí": { lat: -29.991223261978963, lon: -50.138205055515265 }
 };
 
 export const BUS_ROUTES = [

@@ -125,12 +125,20 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
 
     const init = async () => {
       try {
-        const resp = await fetch('/fundo-carteirinha.png');
+        const stateSchools = ['IEE Barão de Tramandaí', 'EEEM 9 de maio', 'EEEM Reinaldo Vacari'];
+
+        const isStateSchool = student?.school && stateSchools.includes(student.school);
+        
+        const bgFileName = isStateSchool ? '/fundo-carteirinha-estadual.png' : '/fundo-carteirinha.png';
+        
+        const resp = await fetch(bgFileName);
         const blob = await resp.blob();
         const reader = new FileReader();
         reader.onloadend = () => { if (isMounted) setBase64Bg(reader.result); };
         reader.readAsDataURL(blob);
-      } catch (e) { }
+      } catch (e) { 
+        console.error("Erro ao carregar fundo:", e);
+      }
 
       if (student?.photo) {
         const safeUrl = await prepareSafeUrl(student.photo);
