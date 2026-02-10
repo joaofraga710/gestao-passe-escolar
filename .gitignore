@@ -25,3 +25,5 @@ Thumbs.db
 *.sw?
 
 .env.local
+
+SECURITY_CHECKLIST.md
