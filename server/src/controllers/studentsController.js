@@ -1,5 +1,5 @@
 import { getAllStudents, getStudentById, createStudent, updateStudent, approveStudent } from '../db/students.js';
-import { markAsIssued, getIssuedStudentIds } from '../db/supabaseStudents.js';
+import { markAsIssued, getIssuedStudentIds, getIssuedStudents } from '../db/supabaseStudents.js';
 
 /**
  * GET /api/students
@@ -147,5 +147,48 @@ export const getIssuedIds = async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar carteirinhas emitidas:', error);
     res.status(500).json({ error: 'Erro ao buscar carteirinhas emitidas' });
+  }
+};
+
+/**
+ * GET /api/students/issued/paged
+ * Retorna estudantes emitidos com paginação
+ */
+export const getIssuedPaged = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page || '1', 10));
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '12', 10)));
+
+    const googleSheetsUrl = process.env.GOOGLE_SHEETS_URL;
+    if (!googleSheetsUrl) {
+      return res.status(500).json({ error: 'URL da planilha não configurada' });
+    }
+
+    const { data: issuedRows, count } = await getIssuedStudents(page, limit);
+    const issuedIds = issuedRows.map(row => row.google_sheets_index).filter(Number.isInteger);
+
+    if (issuedIds.length === 0) {
+      return res.json({ items: [], total: 0, page, limit });
+    }
+
+    const response = await fetch(googleSheetsUrl);
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar dados: ${response.status}`);
+    }
+
+    const sheetData = await response.json();
+
+    const items = issuedIds
+      .map(index => {
+        const row = sheetData[index];
+        if (!row) return null;
+        return { id: String(index), ...row };
+      })
+      .filter(Boolean);
+
+    res.json({ items, total: count || 0, page, limit });
+  } catch (error) {
+    console.error('Erro ao buscar carteirinhas emitidas paginadas:', error);
+    res.status(500).json({ error: 'Erro ao buscar carteirinhas emitidas paginadas' });
   }
 };

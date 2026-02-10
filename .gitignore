@@ -1,4 +1,3 @@
-# Logs e Dependências
 node_modules
 logs
 *.log
@@ -6,24 +5,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
-# Build de produção (Vercel cria isso lá, não suba!)
 dist
 dist-ssr
 build
-
-# Variáveis de Ambiente (SEGURANÇA!)
 .env
 .env.*
 !.env.example
-
-# Editor e Sistema
 .vscode/*
 .idea
 .DS_Store
 Thumbs.db
 *.sw?
-
 .env.local
-
 SECURITY_CHECKLIST.md

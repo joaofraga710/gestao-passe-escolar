@@ -10,6 +10,10 @@ const IssuedCards = () => {
   const [students, setStudents] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const ITEMS_PER_PAGE = 12;
 
   const API_URL = import.meta.env.VITE_API_URL; 
 
@@ -41,15 +45,14 @@ const IssuedCards = () => {
     return `https://wsrv.nl/?url=${encodeURIComponent(`https://drive.google.com/uc?export=view&id=${idMatch[0]}`)}&w=400&q=80&output=webp`;
   };
 
-  const loadIssuedData = async () => {
+  const loadIssuedData = async (currentPage = page) => {
     setLoading(true);
     
     try {
       // Obter token do sessionStorage
       const token = sessionStorage.getItem('school_token');
 
-      // Buscar IDs dos emitidos do Supabase
-      const issuedResponse = await fetch(`${API_URL}/api/students/issued`, {
+      const issuedResponse = await fetch(`${API_URL}/api/students/issued/paged?page=${currentPage}&limit=${ITEMS_PER_PAGE}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -60,48 +63,35 @@ const IssuedCards = () => {
         throw new Error('Erro ao buscar emitidas');
       }
       
-      const issuedIds = await issuedResponse.json();
+      const result = await issuedResponse.json();
+      const issuedItems = Array.isArray(result.items) ? result.items : [];
 
-      if (issuedIds.length === 0) {
+      if (issuedItems.length === 0) {
         setStudents([]);
+        setTotalItems(result.total || 0);
         setLoading(false);
         return;
       }
 
-      // Buscar todos os dados da planilha
-      const studentsResponse = await fetch(`${API_URL}/api/students`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!studentsResponse.ok) {
-        throw new Error('Erro ao buscar dados');
-      }
-      
-      const data = await studentsResponse.json();
-        if (!Array.isArray(data)) throw new Error('Dados inválidos');
+      const formattedData = issuedItems.map((item) => ({
+        id: String(item.id),
+        name: findSmartValue(item, ['nome', 'aluno']),
+        school: findSmartValue(item, ['escola']) || 'Não informada',
+        route: findSmartValue(item, ['rota']),
+        street: findSmartValue(item, ['rua', 'logradouro']),
+        number: findSmartValue(item, ['número']),
+        neighborhood: findSmartValue(item, ['bairro']),
+        parentName: findSmartValue(item, ['responsável']),
+        parentPhone: findSmartValue(item, ['telefone']),
+        cpf: String(findSmartValue(item, ['cpf']) || '').replace(/\D/g, ''),
+        date: String(findSmartValue(item, ['carimbo']) || '').split(' ')[0],
+        photo: getDriveImage(findSmartValue(item, ['foto'])),
+        status: "Emitida"
+      }));
 
-        const formattedData = data.map((item, index) => ({
-            id: String(index),
-            name: findSmartValue(item, ['nome', 'aluno']),
-            school: findSmartValue(item, ['escola']) || 'Não informada',
-            route: findSmartValue(item, ['rota']),
-            street: findSmartValue(item, ['rua', 'logradouro']),
-            number: findSmartValue(item, ['número']),
-            neighborhood: findSmartValue(item, ['bairro']),
-            parentName: findSmartValue(item, ['responsável']),
-            parentPhone: findSmartValue(item, ['telefone']),
-            cpf: String(findSmartValue(item, ['cpf']) || '').replace(/\D/g, ''),
-            date: String(findSmartValue(item, ['carimbo']) || '').split(' ')[0],
-            photo: getDriveImage(findSmartValue(item, ['foto'])),
-            status: "Emitida"
-        }));
-
-        const issuedOnly = formattedData.filter(student => issuedIds.includes(parseInt(student.id)));
-        setStudents(issuedOnly.reverse());
-        setLoading(false);
+      setStudents(formattedData);
+      setTotalItems(result.total || 0);
+      setLoading(false);
       } catch (err) {
         console.error('Erro ao carregar emitidas:', err);
         setLoading(false);
@@ -110,11 +100,15 @@ const IssuedCards = () => {
   };
 
   useEffect(() => {
-    loadIssuedData();
+    loadIssuedData(page);
     const handleUpdate = () => loadIssuedData();
     window.addEventListener('cards_updated', handleUpdate);
     return () => window.removeEventListener('cards_updated', handleUpdate);
-  }, []);
+  }, [page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
 
   const filteredStudents = students.filter(student => {
     const term = searchTerm.toLowerCase();
@@ -124,6 +118,10 @@ const IssuedCards = () => {
       (student.cpf && student.cpf.includes(term))
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedStudents = filteredStudents;
 
   return (
     <div ref={containerRef}>
@@ -164,8 +162,8 @@ const IssuedCards = () => {
         </div>
       )}
 
-      <div className="cards-grid">
-        {filteredStudents.map((student) => (
+      <div className="cards-grid issued-grid">
+        {paginatedStudents.map((student) => (
           <div key={student.id} className="student-card" onClick={() => setSelectedStudent(student)}>
             
             <div className="card-header">
@@ -194,6 +192,28 @@ const IssuedCards = () => {
           </div>
         ))}
       </div>
+
+      {!loading && totalItems > ITEMS_PER_PAGE && (
+        <div className="pagination">
+          <button
+            className="pagination-btn"
+            onClick={() => setPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            Anterior
+          </button>
+          <div className="pagination-info">
+            Página {currentPage} de {totalPages}
+          </div>
+          <button
+            className="pagination-btn"
+            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Próxima
+          </button>
+        </div>
+      )}
 
       {selectedStudent && (
         <StudentModal 
