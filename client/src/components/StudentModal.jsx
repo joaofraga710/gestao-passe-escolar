@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../styles/StudentModal.css'; 
 import CardGenerator from './CardGenerator'; 
-// --- IMPORTAÇÕES DO NOVO SISTEMA DE GPS ---
 import BUS_ROUTES from '../utils/busRoutes';
 import { getCoordinatesFromAddress, findNearestRoute } from '../utils/gpsUtils';
 
@@ -19,7 +18,9 @@ const Icon = ({ name, size = 20, color = "currentColor", style = {} }) => {
     camera: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></>,
     users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
     creditCard: <><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></>,
-    save: <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>
+    save: <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>,
+    // NOVO ÍCONE DE EMAIL
+    mail: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></>
   };
 
   return (
@@ -39,6 +40,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
     name: '',
     cpf: '',
     school: '',
+    schoolEmail: '', // NOVO CAMPO NO ESTADO
     street: '',
     number: '',
     neighborhood: '',
@@ -53,6 +55,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
         name: student.name || '',
         cpf: student.cpf ? String(student.cpf) : '',
         school: student.school || '',
+        schoolEmail: student.schoolEmail || '', // PUXA DO OBJETO STUDENT
         street: student.street || '',
         number: student.number || '',
         neighborhood: student.neighborhood || '',
@@ -156,7 +159,6 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
         setSuggestedRoute({ found: false, text: result.text });
     }
   };
-  // -----------------------------------------------
 
   const handleAcceptSuggestion = () => {
     if (suggestedRoute?.found) {
@@ -181,6 +183,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
         name: student.name || '',
         cpf: student.cpf ? String(student.cpf) : '',
         school: student.school || '',
+        schoolEmail: student.schoolEmail || '', // RESET DO NOVO CAMPO
         street: student.street || '',
         number: student.number || '',
         neighborhood: student.neighborhood || '',
@@ -294,6 +297,27 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
                   )}
                 </div>
               </div>
+
+              {/* --- NOVO CAMPO: EMAIL DA ESCOLA --- */}
+              <div className="field-group" style={{marginTop: '10px'}}>
+                  <label><Icon name="mail" size={12} style={{marginRight: '4px', verticalAlign: 'middle'}}/>Email da Escola</label>
+                  {isEditingData ? (
+                      <input 
+                        type="email" 
+                        name="schoolEmail" 
+                        value={formData.schoolEmail} 
+                        onChange={handleInputChange} 
+                        style={inputStyle} 
+                        placeholder="email@escola.com.br"
+                      />
+                  ) : (
+                      <div className="value-box" style={{fontSize: '0.9rem', color: '#8b949e'}}>
+                        {formData.schoolEmail || 'Não informado'}
+                      </div>
+                  )}
+              </div>
+              {/* ----------------------------------- */}
+
             </div>
           </div>
 
@@ -339,7 +363,7 @@ const StudentModal = ({ student, onClose, onMarkAsPrinted, onSave }) => {
 
                   <div className="action-buttons">
                     {isManualRoute && (
-                         <button className="btn-pill btn-blue-action" onClick={() => setIsManualRoute(false)}>OK</button>
+                          <button className="btn-pill btn-blue-action" onClick={() => setIsManualRoute(false)}>OK</button>
                     )}
 
                     {!isManualRoute && suggestedRoute && (
