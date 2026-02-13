@@ -37,11 +37,11 @@ function App() {
 
           <Route element={<PrivateRoutes />}>
             <Route element={<MainLayout />}>
-               <Route path="/" element={<Navigate to="/pendentes" replace />} />
-               <Route path="/pendentes" element={<PendingCards />} />
-               <Route path="/emitidas" element={<IssuedCards />} />
-               <Route path="/calcular-rota" element={<CalcularRota />} />
-               <Route path="/lixeira" element={<TrashCards />} />
+                <Route path="/" element={<Navigate to="/pendentes" replace />} />
+                <Route path="/pendentes" element={<PendingCards />} />
+                <Route path="/emitidas" element={<IssuedCards />} />
+                <Route path="/calcular-rota" element={<CalcularRota />} />
+                <Route path="/lixeira" element={<TrashCards />} />
             </Route>
           </Route>
 

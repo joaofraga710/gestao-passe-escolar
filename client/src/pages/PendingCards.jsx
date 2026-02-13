@@ -73,12 +73,11 @@ const PendingCards = () => {
     return `https://wsrv.nl/?url=${encodeURIComponent(`https://drive.google.com/uc?export=view&id=${idMatch[0]}`)}&w=400&q=80&output=webp`;
   };
 
-  // Função com retry para lidar com cold start do Render
   const fetchWithRetry = async (url, options, retries = 3, delay = 2000) => {
     for (let i = 0; i < retries; i++) {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+        const timeout = setTimeout(() => controller.abort(), 60000);
         
         const response = await fetch(url, {
           ...options,
@@ -104,7 +103,6 @@ const PendingCards = () => {
     setLoading(true);
     setLoadingMessage('Carregando carteirinhas...');
     
-    // Atualizar mensagem após 3 segundos (cold start do Render)
     const timer1 = setTimeout(() => {
       if (loading) setLoadingMessage('Aguarde, servidor iniciando... (pode levar até 30s)');
     }, 3000);
@@ -113,10 +111,8 @@ const PendingCards = () => {
       if (loading) setLoadingMessage('Ainda carregando... Quase lá!');
     }, 15000);
     
-    // Obter token do sessionStorage
     const token = sessionStorage.getItem('school_token');
     
-    // Buscar carteirinhas já emitidas primeiro
     Promise.all([
       fetchWithRetry(`${API_URL}/api/students`, {
         headers: {
@@ -158,6 +154,9 @@ const PendingCards = () => {
                 id: String(index),
                 name: findSmartValue(item, ['nome', 'aluno']),
                 school: school || 'Não informada',
+                // --- NOVA LINHA ADICIONADA AQUI ---
+                schoolEmail: findSmartValue(item, ['email da escola', 'e-mail da escola', 'email']), 
+                // ----------------------------------
                 route: finalRoute,
                 detectionType,
                 street, neighborhood,
@@ -170,7 +169,6 @@ const PendingCards = () => {
             };
         });
 
-        // Filtrar carteirinhas que já foram emitidas (do Supabase)
         const issuedIdsSet = new Set(issuedIds.map(String));
         const trashedIds = getTrashIds();
         const pendingOnly = formattedData.filter(student => !issuedIdsSet.has(String(student.id)) && !trashedIds.has(String(student.id)));
@@ -208,10 +206,8 @@ const PendingCards = () => {
     const idString = String(studentId);
     
     try {
-      // Obter token
       const token = sessionStorage.getItem('school_token');
       
-      // Marcar como emitida no backend (Supabase)
       const response = await fetch(`${API_URL}/api/students/${idString}/issue`, {
         method: 'POST',
         headers: {
@@ -224,11 +220,9 @@ const PendingCards = () => {
         throw new Error('Erro ao marcar como emitida');
       }
       
-      // Remover da lista local e fechar modal
       setStudents(prev => prev.filter(s => String(s.id) !== idString));
       setSelectedStudent(null);
       
-      // Notificar outras abas
       window.dispatchEvent(new Event("cards_updated"));
     } catch (error) {
       console.error('Erro ao marcar carteirinha:', error);
