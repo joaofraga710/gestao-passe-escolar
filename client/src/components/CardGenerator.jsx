@@ -3,6 +3,10 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Cropper from 'react-easy-crop';
 
+const getRadianAngle = (degreeValue) => {
+  return (degreeValue * Math.PI) / 180;
+};
+
 const createImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -14,13 +18,38 @@ const createImage = (url) =>
     image.src = url;
   });
 
-async function getCroppedImg(imageSrc, pixelCrop) {
+async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
+
+  const maxSize = Math.max(image.width, image.height);
+  const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+
+  canvas.width = safeArea;
+  canvas.height = safeArea;
+
+  ctx.translate(safeArea / 2, safeArea / 2);
+  ctx.rotate(getRadianAngle(rotation));
+  ctx.translate(-safeArea / 2, -safeArea / 2);
+
+  ctx.drawImage(
+    image,
+    safeArea / 2 - image.width * 0.5,
+    safeArea / 2 - image.height * 0.5
+  );
+  
+  const data = ctx.getImageData(0, 0, safeArea, safeArea);
+
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
-  ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, pixelCrop.width, pixelCrop.height);
+
+  ctx.putImageData(
+    data,
+    Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
+    Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
+  );
+
   return canvas.toDataURL('image/jpeg', 1.0);
 }
 
@@ -103,6 +132,7 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
   const [base64Bg, setBase64Bg] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -137,7 +167,7 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
         reader.onloadend = () => { if (isMounted) setBase64Bg(reader.result); };
         reader.readAsDataURL(blob);
       } catch (e) { 
-        console.error("Erro ao carregar fundo:", e);
+        console.error(e);
       }
 
       if (student?.photo) {
@@ -155,7 +185,7 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
 
   const handleConfirmCrop = async () => {
     try {
-      const resultBase64 = await getCroppedImg(photoForCrop, croppedAreaPixels);
+      const resultBase64 = await getCroppedImg(photoForCrop, croppedAreaPixels, rotation);
       setCroppedPhoto(resultBase64);
       setStep('preview');
     } catch (e) {
@@ -203,12 +233,20 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
         <div style={styles.panel}> 
           <div style={styles.header}>
             <h2 style={styles.title}>Ajustar Foto</h2>
-            <p style={styles.subtitle}>Arraste e use o zoom para centralizar</p>
+            <p style={styles.subtitle}>Arraste, gire e use o zoom para centralizar</p>
           </div>
           <div style={styles.cropperContainer}>
             <Cropper
-              image={photoForCrop} crop={crop} zoom={zoom} aspect={135/165}
-              onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} objectFit="contain"
+              image={photoForCrop} 
+              crop={crop} 
+              zoom={zoom} 
+              rotation={rotation}
+              aspect={135/165}
+              onCropChange={setCrop} 
+              onCropComplete={onCropComplete} 
+              onZoomChange={setZoom} 
+              onRotationChange={setRotation}
+              objectFit="contain"
             />
           </div>
           <div style={styles.controls}>
@@ -217,6 +255,12 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
                <span style={styles.label}>{zoom.toFixed(1)}x</span>
             </div>
             <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="minimal-slider" style={styles.slider} />
+            
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px', marginTop: '16px'}}>
+               <span style={styles.label}>ROTAÇÃO</span>
+               <span style={styles.label}>{rotation}°</span>
+            </div>
+            <input type="range" value={rotation} min={0} max={360} step={1} onChange={(e) => setRotation(Number(e.target.value))} className="minimal-slider" style={styles.slider} />
           </div>
           <div style={styles.footer}>
             <button onClick={onClose} style={styles.btnSecondary}>Cancelar</button>
@@ -321,7 +365,7 @@ const animationsAndStyles = `
 
 const styles = {
   overlay: { position: 'fixed', inset: 0, backgroundColor: theme.bgOverlay, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)', animation: 'fadeIn 0.3s ease-out' },
-  panel: { width: '450px', height: '600px', backgroundColor: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)', animation: 'popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)' },
+  panel: { width: '450px', height: '650px', backgroundColor: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)', animation: 'popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)' },
   header: { padding: '20px 24px', borderBottom: `1px solid ${theme.border}`, backgroundColor: theme.bgHeader },
   title: { margin: 0, fontSize: '1.1rem', fontWeight: '600', color: theme.textPrimary },
   subtitle: { margin: '4px 0 0 0', fontSize: '0.85rem', color: theme.textSecondary },
