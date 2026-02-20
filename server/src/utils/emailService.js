@@ -1,20 +1,8 @@
-import nodemailer from 'nodemailer';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: Number(process.env.EMAIL_PORT || 465),
-  secure: String(process.env.EMAIL_SECURE || 'true') === 'true',
-  // Force IPv4 in environments where IPv6 routes are blocked.
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
 const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error('EMAIL_USER/EMAIL_PASS nao configurados no ambiente.');
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM) {
+    throw new Error('RESEND_API_KEY/RESEND_FROM nao configurados no ambiente.');
   }
 
   if (!destinationEmail || !pdfBase64) return;
@@ -22,8 +10,8 @@ const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
   const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
 
   const mailOptions = {
-    from: `"Transporte Escolar - Imbé" <${process.env.EMAIL_USER}>`,
-    to: destinationEmail,
+    from: process.env.RESEND_FROM,
+    to: [destinationEmail],
     subject: `📄 Carteirinha Digital - ${studentName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e4e8; border-radius: 8px; overflow: hidden;">
@@ -43,13 +31,24 @@ const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
       {
         filename: `Carteirinha_${studentName.replace(/\s+/g, '_')}.pdf`,
         content: base64Data,
-        encoding: 'base64',
-        contentType: 'application/pdf'
+        content_type: 'application/pdf'
       }
     ]
   };
 
-  await transporter.sendMail(mailOptions);
+  const response = await fetch(RESEND_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(mailOptions)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Resend error: ${response.status} ${errorText}`);
+  }
 };
 
 export { sendPdfByEmail };
