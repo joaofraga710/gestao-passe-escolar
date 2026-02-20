@@ -475,7 +475,16 @@ const styles = {
   footer: { padding: '16px 24px', borderTop: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'flex-end', gap: '12px', backgroundColor: theme.bgHeader },
   uiContainer: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' },
   glassHeader: { marginBottom: '24px', textAlign: 'center', zIndex: 10, backgroundColor: theme.bgPanel, padding: '12px 30px', borderRadius: '50px', border: `1px solid ${theme.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' },
-  previewWrapper: { transform: 'scale(0.42)', transformOrigin: 'top center', marginBottom: '-640px', border: `1px solid ${theme.border}`, boxShadow: '0 0 60px rgba(0,0,0,0.6)', backgroundColor: '#fff', borderRadius: '4px' },
+  previewWrapper: {
+    transform: 'scale(0.6)',
+    transformOrigin: 'top center',
+    marginBottom: '-420px',
+    border: `1px solid ${theme.border}`,
+    boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+    backgroundColor: 'var(--bg-card)',
+    borderRadius: '20px',
+    padding: '16px'
+  },
   floatingFooter: { marginTop: '30px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderRadius: '10px', backgroundColor: theme.bgPanel, border: `1px solid ${theme.border}`, zIndex: 2001, boxShadow: '0 10px 30px rgba(0,0,0,0.4)' },
   vDivider: { width: '1px', height: '20px', background: theme.border, margin: '0 4px' },
   btnPrimary: { padding: '8px 20px', borderRadius: '6px', border: `1px solid ${theme.accent}`, backgroundColor: theme.accent, color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' },
