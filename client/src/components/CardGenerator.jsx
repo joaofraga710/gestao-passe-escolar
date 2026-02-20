@@ -55,18 +55,19 @@ async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
 
 const theme = {
   bgOverlay: 'rgba(15, 17, 21, 0.92)',
-  bgPanel: 'var(--bg-card)',
-  bgHeader: 'var(--bg-card-hover)',
-  border: 'var(--border-color)',
-  textPrimary: 'var(--text-primary)',
-  textSecondary: 'var(--text-secondary)',
-  accent: 'var(--accent-color)',
-  accentHover: 'var(--accent-hover)',
-  success: '#1f6feb',
-  danger: '#da3633'
+  bgPanel: '#0d1117',
+  bgHeader: '#161b22',
+  border: '#30363d',
+  textPrimary: '#c9d1d9',
+  textSecondary: '#8b949e',
+  accent: '#1f6feb',
+  accentHover: '#388bfd',
+  success: '#238636',
+  danger: '#da3633',
+  pdfBackground: '#525659' 
 };
 
-const CONFIG = { marginTop: '10mm', zoomScreen: '0.73' };
+const CONFIG = { marginTop: '10mm', zoomScreen: '0.8' };
 
 const maskCPF = (value) => {
   if (!value) return '';
@@ -126,7 +127,6 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
   const printRef = useRef(null);
   const [step, setStep] = useState('loading');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
   const [destinationEmail, setDestinationEmail] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   
@@ -159,9 +159,7 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
     const init = async () => {
       try {
         const stateSchools = ['IEE Barão de Tramandaí', 'EEEM 9 de maio', 'EEEM Reinaldo Vacari'];
-
         const isStateSchool = student?.school && stateSchools.includes(student.school);
-        
         const bgFileName = isStateSchool ? '/fundo-carteirinha-estadual.png' : '/fundo-carteirinha.png';
         
         const resp = await fetch(bgFileName);
@@ -249,7 +247,6 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
       if (!response.ok) throw new Error('Falha no envio');
       
       alert('PDF enviado com sucesso para a escola!');
-      setShowEmailModal(false);
       setDestinationEmail('');
     } catch (error) {
       alert("Erro ao enviar o e-mail.");
@@ -324,14 +321,16 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
   return (
     <div style={styles.overlay}>
       <div style={styles.previewShell} className="fade-in">
+        
+        {/* LADO ESQUERDO: Visualização do PDF (Fundo Cinza) */}
         <div style={styles.previewMain}>
-          <div style={styles.previewWrapper}>
+          <div style={{...styles.a4PageWrapper, zoom: CONFIG.zoomScreen}}>
             <div style={{...styles.a4Page, paddingTop: CONFIG.marginTop}}>
               <div style={{display: 'flex', width: '100%', justifyContent: 'center', gap: '0px'}}>
-                <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
+                <div style={{...styles.cardWrapper, zoom: 0.73}}>
                   <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
                 </div>
-                <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
+                <div style={{...styles.cardWrapper, zoom: 0.73}}>
                   <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
                 </div>
               </div>
@@ -339,55 +338,35 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
           </div>
         </div>
 
+        {/* LADO DIREITO: Barra Lateral de Configurações (Estilo Chrome) */}
         <div style={styles.previewSide}>
-          <div style={styles.sideHeader}>
-            <h2 style={styles.title}>Visualização de Impressão</h2>
-            <p style={styles.subtitle}>{isReady ? "Confira o layout A4 ao lado" : "Renderizando..."}</p>
-          </div>
+          <h2 style={styles.sideTitle}>Imprimir</h2>
 
-          <div style={styles.sideActions}>
-            <button onClick={() => setStep('crop')} style={styles.btnSecondary}>Ajustar Foto</button>
-            <button onClick={onClose} style={styles.btnSecondary}>Sair</button>
-
-            <div style={styles.sideDivider}></div>
-
+          {/* Ações Principais do Topo */}
+          <div style={styles.topActions}>
             <button 
-              style={{...styles.btnPrimary, opacity: (!isReady || isGenerating) ? 0.6 : 1}}
+              style={{...styles.btnPrimary, flex: 1, opacity: (!isReady || isGenerating) ? 0.6 : 1}}
               onClick={handleDownloadPDF}
               disabled={!isReady || isGenerating}
             >
-              {isGenerating ? 'Gerando...' : 'Baixar PDF'}
+              {isGenerating ? 'Aguarde...' : 'Baixar PDF'}
             </button>
-
-            <button 
-              style={{...styles.btnPrimary, backgroundColor: '#1f6feb', borderColor: '#1f6feb', opacity: (!isReady || isGenerating) ? 0.6 : 1}}
-              onClick={() => setShowEmailModal(true)}
-              disabled={!isReady || isGenerating}
-            >
-              ✉️ Enviar Escola
+            <button onClick={onClose} style={{...styles.btnSecondary, flex: 1}}>
+              Cancelar
             </button>
-
-            {onMarkAsPrinted && (
-              <button style={styles.btnSuccess} onClick={() => setShowConfirmModal(true)}>
-                Concluído ✓
-              </button>
-            )}
           </div>
-        </div>
-      </div>
 
-      {showEmailModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.confirmBox} className="pop-in">
-            <h3 style={styles.confirmTitle}>Enviar PDF por E-mail</h3>
-            <p style={styles.confirmText}>Digite o e-mail da escola de destino para enviar a carteirinha de <strong>{student.name}</strong>.</p>
-            
+          <div style={styles.sideDivider}></div>
+
+          {/* Secção de Destino / E-mail */}
+          <div style={styles.settingGroup}>
+            <label style={styles.settingLabel}>Destino / Enviar por E-mail</label>
             <select
-              className="email-select"
+              style={styles.selectInput}
               value={destinationEmail}
               onChange={(e) => setDestinationEmail(e.target.value)}
             >
-              <option value="">Selecione a escola...</option>
+              <option value="">Apenas Salvar no Computador</option>
               <option value="emefprofclelia@edu.imbe.rs.gov.br">emefprofclelia@edu.imbe.rs.gov.br</option>
               <option value="emefprofjusseniimbe@edu.imbe.rs.gov.br">emefprofjusseniimbe@edu.imbe.rs.gov.br</option>
               <option value="emefmanoelmendesimbe@edu.imbe.rs.gov.br">emefmanoelmendesimbe@edu.imbe.rs.gov.br</option>
@@ -409,17 +388,48 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
               <option value="craeimbe@edu.imbe.rs.gov.br">craeimbe@edu.imbe.rs.gov.br</option>
               <option value="escolademusica@edu.imbe.rs.gov.br">escolademusica@edu.imbe.rs.gov.br</option>
             </select>
-
-            <div style={styles.confirmActions}>
-              <button onClick={() => setShowEmailModal(false)} style={styles.btnSecondary} disabled={isSendingEmail}>Cancelar</button>
-              <button onClick={handleGenerateAndSendEmail} style={{...styles.btnPrimary, backgroundColor: '#1f6feb'}} disabled={!destinationEmail || isSendingEmail}>
-                {isSendingEmail ? 'Enviando...' : 'Enviar Anexo'}
+            
+            {destinationEmail && (
+              <button 
+                style={{...styles.btnPrimary, backgroundColor: theme.accent, marginTop: '10px', width: '100%'}}
+                onClick={handleGenerateAndSendEmail}
+                disabled={!isReady || isGenerating || isSendingEmail}
+              >
+                {isSendingEmail ? 'Enviando...' : '✉️ Enviar para Escola'}
               </button>
-            </div>
+            )}
           </div>
-        </div>
-      )}
 
+          <div style={styles.sideDivider}></div>
+
+          {/* Outras Configurações */}
+          <div style={styles.settingGroup}>
+            <label style={styles.settingLabel}>Páginas</label>
+            <div style={{ color: theme.textPrimary, fontSize: '0.9rem' }}>Tudo (1 página)</div>
+          </div>
+
+          <div style={styles.settingGroup}>
+            <label style={styles.settingLabel}>Layout</label>
+            <div style={{ color: theme.textPrimary, fontSize: '0.9rem' }}>Retrato</div>
+          </div>
+
+          <div style={styles.sideDivider}></div>
+
+          <div style={{ flex: 1 }}></div>
+
+          <button onClick={() => setStep('crop')} style={{...styles.btnSecondary, width: '100%', marginBottom: '12px'}}>
+            Ajustar Foto do Aluno
+          </button>
+
+          {onMarkAsPrinted && (
+            <button style={{...styles.btnSuccess, width: '100%'}} onClick={() => setShowConfirmModal(true)}>
+              Concluído ✓
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Modal de Confirmação Final */}
       {showConfirmModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.confirmBox} className="pop-in">
@@ -435,6 +445,7 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
         </div>
       )}
 
+      {/* Área Oculta para Geração do PDF */}
       <div style={{ position: 'fixed', top: 0, left: '-10000px', width: '290mm', height: '400mm', backgroundColor: 'white', zIndex: -1 }}>
         <div ref={printRef} style={{ width: '100%', height: '100%', backgroundColor: 'white', display: 'flex', justifyContent: 'center', paddingTop: '14mm' }}>
           <div style={{display: 'flex', width: '100%', justifyContent: 'center', gap: '0px'}}>
@@ -450,12 +461,8 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
 
 const animationsAndStyles = `
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-  .slide-up { animation: slideUp 0.4s ease-out forwards; }
-  .slide-down { animation: slideDown 0.4s ease-out forwards; }
+  .fade-in { animation: fadeIn 0.3s ease-out forwards; }
   .pop-in { animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   .minimal-slider { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; }
   .minimal-slider:focus { outline: none; }
@@ -465,8 +472,8 @@ const animationsAndStyles = `
 `;
 
 const styles = {
-  overlay: { position: 'fixed', inset: 0, backgroundColor: theme.bgOverlay, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)', animation: 'fadeIn 0.3s ease-out' },
-  panel: { width: '450px', height: '650px', backgroundColor: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)', animation: 'popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)' },
+  overlay: { position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', backgroundColor: theme.bgPanel },
+  panel: { width: '450px', height: '650px', backgroundColor: theme.bgPanel, borderRadius: '12px', border: `1px solid ${theme.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)', animation: 'popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)', margin: 'auto' },
   header: { padding: '20px 24px', borderBottom: `1px solid ${theme.border}`, backgroundColor: theme.bgHeader },
   title: { margin: 0, fontSize: '1.1rem', fontWeight: '600', color: theme.textPrimary },
   subtitle: { margin: '4px 0 0 0', fontSize: '0.85rem', color: theme.textSecondary },
@@ -475,57 +482,67 @@ const styles = {
   label: { fontSize: '0.7rem', color: theme.textSecondary, fontWeight: '600', letterSpacing: '0.5px' },
   slider: { width: '100%' },
   footer: { padding: '16px 24px', borderTop: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'flex-end', gap: '12px', backgroundColor: theme.bgHeader },
+  
+  // Layout do Chrome Print Dialog
   previewShell: {
-    width: 'min(1200px, 92vw)',
-    height: 'min(820px, 90vh)',
-    display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) 320px',
-    gap: '20px',
+    width: '100vw',
+    height: '100vh',
+    display: 'flex',
     backgroundColor: theme.bgPanel,
-    border: `1px solid ${theme.border}`,
-    borderRadius: '20px',
-    padding: '20px',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.55)'
   },
   previewMain: {
-    backgroundColor: theme.bgHeader,
-    border: `1px solid ${theme.border}`,
-    borderRadius: '16px',
+    flex: 1,
+    backgroundColor: theme.pdfBackground,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden'
+    overflow: 'auto',
+    padding: '40px'
   },
-  previewWrapper: {
-    transform: 'scale(0.72)',
-    transformOrigin: 'center',
-    border: `1px solid ${theme.border}`,
-    boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    padding: '8px'
+  a4PageWrapper: {
+    backgroundColor: 'white',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+    display: 'flex'
   },
+  a4Page: { width: '210mm', height: '297mm', background: 'white', display: 'flex', justifyContent: 'center' },
   previewSide: {
-    backgroundColor: theme.bgHeader,
-    border: `1px solid ${theme.border}`,
-    borderRadius: '16px',
-    padding: '18px',
+    width: '340px',
+    backgroundColor: theme.bgPanel,
+    borderLeft: `1px solid ${theme.border}`,
+    padding: '24px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px'
+    boxShadow: '-2px 0 10px rgba(0,0,0,0.2)',
+    overflowY: 'auto'
   },
-  sideHeader: { display: 'flex', flexDirection: 'column', gap: '6px' },
-  sideActions: { display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px' },
-  sideDivider: { height: '1px', background: theme.border, margin: '6px 0' },
-  btnPrimary: { padding: '8px 20px', borderRadius: '6px', border: `1px solid ${theme.accent}`, backgroundColor: theme.accent, color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' },
-  btnSecondary: { padding: '8px 16px', borderRadius: '6px', border: `1px solid ${theme.border}`, backgroundColor: 'transparent', color: theme.textSecondary, cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', transition: 'all 0.2s' },
-  btnSuccess: { padding: '8px 20px', borderRadius: '6px', border: `1px solid ${theme.success}`, backgroundColor: theme.success, color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' },
+  sideTitle: { margin: '0 0 20px 0', fontSize: '1.3rem', fontWeight: '500', color: theme.textPrimary },
+  topActions: { display: 'flex', gap: '10px' },
+  sideDivider: { height: '1px', background: theme.border, margin: '20px 0' },
+  settingGroup: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' },
+  settingLabel: { fontSize: '0.85rem', color: theme.textSecondary, fontWeight: '500' },
+  selectInput: {
+    width: '100%',
+    padding: '10px 12px',
+    borderRadius: '4px',
+    border: `1px solid ${theme.border}`,
+    backgroundColor: theme.bgHeader,
+    color: theme.textPrimary,
+    fontSize: '0.9rem',
+    outline: 'none',
+    cursor: 'pointer'
+  },
+
+  // Botões e Cards
+  btnPrimary: { padding: '10px 16px', borderRadius: '4px', border: `1px solid ${theme.accent}`, backgroundColor: theme.accent, color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' },
+  btnSecondary: { padding: '10px 16px', borderRadius: '4px', border: `1px solid ${theme.border}`, backgroundColor: 'transparent', color: theme.textPrimary, cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', transition: 'all 0.2s' },
+  btnSuccess: { padding: '10px 16px', borderRadius: '4px', border: `1px solid ${theme.success}`, backgroundColor: theme.success, color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' },
+  
   modalOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, backdropFilter: 'blur(2px)', animation: 'fadeIn 0.2s' },
   confirmBox: { width: '320px', backgroundColor: theme.bgPanel, padding: '24px', borderRadius: '12px', border: `1px solid ${theme.border}`, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' },
   confirmTitle: { margin: '0 0 12px 0', color: theme.textPrimary, fontSize: '1.1rem', fontWeight: '600' },
   confirmText: { margin: '0 0 24px 0', color: theme.textSecondary, fontSize: '0.9rem', lineHeight: '1.5' },
   confirmActions: { display: 'flex', justifyContent: 'flex-end', gap: '12px' },
-  a4Page: { width: '210mm', height: '297mm', background: 'white', display: 'flex', justifyContent: 'center' },
+  
   cardWrapper: { width: '484px', height: '311px', position: 'relative' },
   cardContainer: { width: '100%', height: '100%', position: 'relative', overflow: 'hidden' },
 };
