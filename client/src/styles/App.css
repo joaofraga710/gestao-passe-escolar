@@ -44,6 +44,31 @@ body {
   position: relative;
 }
 
+.email-select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  border: 1px solid #1f1f1f;
+  background-color: #15161a;
+  color: #e3e3e3;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.email-select:focus {
+  border-color: #2ea043;
+  box-shadow: 0 0 0 2px rgba(46, 160, 67, 0.2);
+}
+
+.email-select option {
+  background-color: #15161a;
+  color: #e3e3e3;
+}
+
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-main); }
 ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }

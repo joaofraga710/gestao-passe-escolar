@@ -54,15 +54,15 @@ async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
 }
 
 const theme = {
-  bgOverlay: 'rgba(1, 4, 9, 0.95)',
-  bgPanel: '#0d1117',       
-  bgHeader: '#161b22',      
-  border: '#30363d',        
-  textPrimary: '#c9d1d9',   
-  textSecondary: '#8b949e', 
-  accent: '#238636',        
-  accentHover: '#2ea043', 
-  success: '#1f6feb', 
+  bgOverlay: 'rgba(15, 17, 21, 0.92)',
+  bgPanel: 'var(--bg-card)',
+  bgHeader: 'var(--bg-card-hover)',
+  border: 'var(--border-color)',
+  textPrimary: 'var(--text-primary)',
+  textSecondary: 'var(--text-secondary)',
+  accent: 'var(--accent-color)',
+  accentHover: 'var(--accent-hover)',
+  success: '#1f6feb',
   danger: '#da3633'
 };
 
@@ -380,13 +380,33 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
             <h3 style={styles.confirmTitle}>Enviar PDF por E-mail</h3>
             <p style={styles.confirmText}>Digite o e-mail da escola de destino para enviar a carteirinha de <strong>{student.name}</strong>.</p>
             
-            <input 
-              type="email" 
+            <select
+              className="email-select"
               value={destinationEmail}
               onChange={(e) => setDestinationEmail(e.target.value)}
-              placeholder="escola@edu.imbe.rs.gov.br"
-              style={{ width: '100%', padding: '10px', marginBottom: '20px', borderRadius: '6px', border: `1px solid ${theme.border}`, backgroundColor: theme.bgHeader, color: 'white' }}
-            />
+            >
+              <option value="">Selecione a escola...</option>
+              <option value="emefprofclelia@edu.imbe.rs.gov.br">emefprofclelia@edu.imbe.rs.gov.br</option>
+              <option value="emefprofjusseniimbe@edu.imbe.rs.gov.br">emefprofjusseniimbe@edu.imbe.rs.gov.br</option>
+              <option value="emefmanoelmendesimbe@edu.imbe.rs.gov.br">emefmanoelmendesimbe@edu.imbe.rs.gov.br</option>
+              <option value="emefnorbertomartinhocardosoimbe@edu.imbe.rs.gov.br">emefnorbertomartinhocardosoimbe@edu.imbe.rs.gov.br</option>
+              <option value="emefolavobilacimbe@edu.imbe.rs.gov.br">emefolavobilacimbe@edu.imbe.rs.gov.br</option>
+              <option value="emefruibarbosaimbe@edu.imbe.rs.gov.br">emefruibarbosaimbe@edu.imbe.rs.gov.br</option>
+              <option value="emefestadodesantacatarinaimbe@edu.imbe.rs.gov.br">emefestadodesantacatarinaimbe@edu.imbe.rs.gov.br</option>
+              <option value="emeftiradentesimbe@edu.imbe.rs.gov.br">emeftiradentesimbe@edu.imbe.rs.gov.br</option>
+              <option value="emeichapeuzinhovermelho@edu.imbe.rs.gov.br">emeichapeuzinhovermelho@edu.imbe.rs.gov.br</option>
+              <option value="emeijardelinoperoni@edu.imbe.rs.gov.br">emeijardelinoperoni@edu.imbe.rs.gov.br</option>
+              <option value="emeipeixinhodourado@edu.imbe.rs.gov.br">emeipeixinhodourado@edu.imbe.rs.gov.br</option>
+              <option value="emeiprofiara@edu.imbe.rs.gov.br">emeiprofiara@edu.imbe.rs.gov.br</option>
+              <option value="emeiprofpedrinha@edu.imbe.rs.gov.br">emeiprofpedrinha@edu.imbe.rs.gov.br</option>
+              <option value="emeitiamarica@edu.imbe.rs.gov.br">emeitiamarica@edu.imbe.rs.gov.br</option>
+              <option value="emeivojovino@edu.imbe.rs.gov.br">emeivojovino@edu.imbe.rs.gov.br</option>
+              <option value="emeivorosa@edu.imbe.rs.gov.br">emeivorosa@edu.imbe.rs.gov.br</option>
+              <option value="capebprofsoniabauerimbe@edu.imbe.rs.gov.br">capebprofsoniabauerimbe@edu.imbe.rs.gov.br</option>
+              <option value="capeb2imbe@edu.imbe.rs.gov.br">capeb2imbe@edu.imbe.rs.gov.br</option>
+              <option value="craeimbe@edu.imbe.rs.gov.br">craeimbe@edu.imbe.rs.gov.br</option>
+              <option value="escolademusica@edu.imbe.rs.gov.br">escolademusica@edu.imbe.rs.gov.br</option>
+            </select>
 
             <div style={styles.confirmActions}>
               <button onClick={() => setShowEmailModal(false)} style={styles.btnSecondary} disabled={isSendingEmail}>Cancelar</button>
