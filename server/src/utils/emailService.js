@@ -7,7 +7,9 @@ const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
 
   if (!destinationEmail || !pdfBase64) return;
 
-  const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "").trim();
+  const base64Data = pdfBase64
+    .replace(/^data:application\/pdf(?:;filename=[^;]+)?;base64,/, "")
+    .trim();
 
   if (!base64Data || base64Data.length === 0) {
     throw new Error('PDF base64 vazio ou inválido.');
