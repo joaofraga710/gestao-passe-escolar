@@ -323,54 +323,56 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
 
   return (
     <div style={styles.overlay}>
-      <div style={styles.uiContainer}>
-        
-        <div style={styles.glassHeader} className="slide-down">
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-            <h2 style={styles.title}>Visualização de Impressão</h2>
-            <p style={styles.subtitle}>{isReady ? "Confira o layout A4 abaixo" : "Renderizando..."}</p>
-          </div>
-        </div>
-
-        <div style={styles.previewWrapper} className="fade-in">
-          <div style={{...styles.a4Page, paddingTop: CONFIG.marginTop}}>
-            <div style={{display: 'flex', width: '100%', justifyContent: 'center', gap: '0px'}}>
-              <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
-                <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
-              </div>
-              <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
-                <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
+      <div style={styles.previewShell} className="fade-in">
+        <div style={styles.previewMain}>
+          <div style={styles.previewWrapper}>
+            <div style={{...styles.a4Page, paddingTop: CONFIG.marginTop}}>
+              <div style={{display: 'flex', width: '100%', justifyContent: 'center', gap: '0px'}}>
+                <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
+                  <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
+                </div>
+                <div style={{...styles.cardWrapper, zoom: CONFIG.zoomScreen}}>
+                  <SingleCard student={student} styles={styles} base64Background={base64Bg} photoSrc={croppedPhoto} />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div style={styles.floatingFooter} className="slide-up">
-          <button onClick={() => setStep('crop')} style={styles.btnSecondary}>Ajustar Foto</button>
-          <div style={styles.vDivider}></div>
-          <button onClick={onClose} style={styles.btnSecondary}>Sair</button>
-          
-          <button 
-            style={{...styles.btnPrimary, opacity: (!isReady || isGenerating) ? 0.6 : 1}}
-            onClick={handleDownloadPDF}
-            disabled={!isReady || isGenerating}
-          >
-            {isGenerating ? 'Gerando...' : 'Baixar PDF'}
-          </button>
+        <div style={styles.previewSide}>
+          <div style={styles.sideHeader}>
+            <h2 style={styles.title}>Visualização de Impressão</h2>
+            <p style={styles.subtitle}>{isReady ? "Confira o layout A4 ao lado" : "Renderizando..."}</p>
+          </div>
 
-          <button 
-            style={{...styles.btnPrimary, backgroundColor: '#1f6feb', borderColor: '#1f6feb', opacity: (!isReady || isGenerating) ? 0.6 : 1}}
-            onClick={() => setShowEmailModal(true)}
-            disabled={!isReady || isGenerating}
-          >
-            ✉️ Enviar Escola
-          </button>
+          <div style={styles.sideActions}>
+            <button onClick={() => setStep('crop')} style={styles.btnSecondary}>Ajustar Foto</button>
+            <button onClick={onClose} style={styles.btnSecondary}>Sair</button>
 
-          {onMarkAsPrinted && (
-            <button style={styles.btnSuccess} onClick={() => setShowConfirmModal(true)}>
-              Concluído ✓
+            <div style={styles.sideDivider}></div>
+
+            <button 
+              style={{...styles.btnPrimary, opacity: (!isReady || isGenerating) ? 0.6 : 1}}
+              onClick={handleDownloadPDF}
+              disabled={!isReady || isGenerating}
+            >
+              {isGenerating ? 'Gerando...' : 'Baixar PDF'}
             </button>
-          )}
+
+            <button 
+              style={{...styles.btnPrimary, backgroundColor: '#1f6feb', borderColor: '#1f6feb', opacity: (!isReady || isGenerating) ? 0.6 : 1}}
+              onClick={() => setShowEmailModal(true)}
+              disabled={!isReady || isGenerating}
+            >
+              ✉️ Enviar Escola
+            </button>
+
+            {onMarkAsPrinted && (
+              <button style={styles.btnSuccess} onClick={() => setShowConfirmModal(true)}>
+                Concluído ✓
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -473,20 +475,48 @@ const styles = {
   label: { fontSize: '0.7rem', color: theme.textSecondary, fontWeight: '600', letterSpacing: '0.5px' },
   slider: { width: '100%' },
   footer: { padding: '16px 24px', borderTop: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'flex-end', gap: '12px', backgroundColor: theme.bgHeader },
-  uiContainer: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  glassHeader: { marginBottom: '24px', textAlign: 'center', zIndex: 10, backgroundColor: theme.bgPanel, padding: '12px 30px', borderRadius: '50px', border: `1px solid ${theme.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' },
+  previewShell: {
+    width: 'min(1200px, 92vw)',
+    height: 'min(820px, 90vh)',
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 320px',
+    gap: '20px',
+    backgroundColor: theme.bgPanel,
+    border: `1px solid ${theme.border}`,
+    borderRadius: '20px',
+    padding: '20px',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.55)'
+  },
+  previewMain: {
+    backgroundColor: theme.bgHeader,
+    border: `1px solid ${theme.border}`,
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden'
+  },
   previewWrapper: {
-    transform: 'scale(0.6)',
-    transformOrigin: 'top center',
-    marginBottom: '-420px',
+    transform: 'scale(0.72)',
+    transformOrigin: 'center',
     border: `1px solid ${theme.border}`,
     boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-    backgroundColor: 'var(--bg-card)',
-    borderRadius: '20px',
-    padding: '16px'
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    padding: '8px'
   },
-  floatingFooter: { marginTop: '30px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderRadius: '10px', backgroundColor: theme.bgPanel, border: `1px solid ${theme.border}`, zIndex: 2001, boxShadow: '0 10px 30px rgba(0,0,0,0.4)' },
-  vDivider: { width: '1px', height: '20px', background: theme.border, margin: '0 4px' },
+  previewSide: {
+    backgroundColor: theme.bgHeader,
+    border: `1px solid ${theme.border}`,
+    borderRadius: '16px',
+    padding: '18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
+  },
+  sideHeader: { display: 'flex', flexDirection: 'column', gap: '6px' },
+  sideActions: { display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px' },
+  sideDivider: { height: '1px', background: theme.border, margin: '6px 0' },
   btnPrimary: { padding: '8px 20px', borderRadius: '6px', border: `1px solid ${theme.accent}`, backgroundColor: theme.accent, color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' },
   btnSecondary: { padding: '8px 16px', borderRadius: '6px', border: `1px solid ${theme.border}`, backgroundColor: 'transparent', color: theme.textSecondary, cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', transition: 'all 0.2s' },
   btnSuccess: { padding: '8px 20px', borderRadius: '6px', border: `1px solid ${theme.success}`, backgroundColor: theme.success, color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' },
