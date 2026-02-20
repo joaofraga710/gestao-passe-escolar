@@ -11,11 +11,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware de segurança
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Aceitar localhost para desenvolvimento e qualquer vercel.app para produção
     if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')) {
       callback(null, true);
     } else {
@@ -27,7 +27,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
 }));
 
-// Rate limiting no login (máx 5 tentativas em 15 minutos)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -36,7 +35,6 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Headers de segurança
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -45,16 +43,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rotas
 app.use('/api/auth', loginLimiter, authRoutes);
 app.use('/api/students', studentsRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
-// Tratamento de erros
 app.use(errorHandler);
 
 app.listen(PORT, () => {

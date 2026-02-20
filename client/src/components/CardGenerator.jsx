@@ -126,6 +126,9 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
   const printRef = useRef(null);
   const [step, setStep] = useState('loading');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [destinationEmail, setDestinationEmail] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   
   const [photoForCrop, setPhotoForCrop] = useState(null);
   const [croppedPhoto, setCroppedPhoto] = useState(null);
@@ -209,6 +212,50 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
       pdf.save(`Carteirinha_${student.name.replace(/\s+/g, '_')}.pdf`);
     } catch (error) { alert("Erro ao gerar PDF."); } 
     finally { setIsGenerating(false); }
+  };
+
+  const handleGenerateAndSendEmail = async () => {
+    if (!printRef.current || !destinationEmail) return;
+    setIsSendingEmail(true);
+  
+    try {
+      await new Promise(r => setTimeout(r, 800));
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+        logging: false, letterRendering: true, imageTimeout: 10000
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      
+      const pdfBase64 = pdf.output('datauristring');
+      const token = sessionStorage.getItem('school_token');
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      
+      const response = await fetch(`${apiUrl}/api/students/${student.id}/send-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          studentName: student.name,
+          email: destinationEmail,
+          pdfBase64: pdfBase64
+        })
+      });
+  
+      if (!response.ok) throw new Error('Falha no envio');
+      
+      alert('PDF enviado com sucesso para a escola!');
+      setShowEmailModal(false);
+      setDestinationEmail('');
+    } catch (error) {
+      alert("Erro ao enviar o e-mail.");
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const handleFinalize = () => {
@@ -311,6 +358,14 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
             {isGenerating ? 'Gerando...' : 'Baixar PDF'}
           </button>
 
+          <button 
+            style={{...styles.btnPrimary, backgroundColor: '#1f6feb', borderColor: '#1f6feb', opacity: (!isReady || isGenerating) ? 0.6 : 1}}
+            onClick={() => setShowEmailModal(true)}
+            disabled={!isReady || isGenerating}
+          >
+            ✉️ Enviar Escola
+          </button>
+
           {onMarkAsPrinted && (
             <button style={styles.btnSuccess} onClick={() => setShowConfirmModal(true)}>
               Concluído ✓
@@ -318,6 +373,30 @@ const CardGenerator = ({ student, onClose, onMarkAsPrinted }) => {
           )}
         </div>
       </div>
+
+      {showEmailModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.confirmBox} className="pop-in">
+            <h3 style={styles.confirmTitle}>Enviar PDF por E-mail</h3>
+            <p style={styles.confirmText}>Digite o e-mail da escola de destino para enviar a carteirinha de <strong>{student.name}</strong>.</p>
+            
+            <input 
+              type="email" 
+              value={destinationEmail}
+              onChange={(e) => setDestinationEmail(e.target.value)}
+              placeholder="escola@edu.imbe.rs.gov.br"
+              style={{ width: '100%', padding: '10px', marginBottom: '20px', borderRadius: '6px', border: `1px solid ${theme.border}`, backgroundColor: theme.bgHeader, color: 'white' }}
+            />
+
+            <div style={styles.confirmActions}>
+              <button onClick={() => setShowEmailModal(false)} style={styles.btnSecondary} disabled={isSendingEmail}>Cancelar</button>
+              <button onClick={handleGenerateAndSendEmail} style={{...styles.btnPrimary, backgroundColor: '#1f6feb'}} disabled={!destinationEmail || isSendingEmail}>
+                {isSendingEmail ? 'Enviando...' : 'Enviar Anexo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showConfirmModal && (
         <div style={styles.modalOverlay}>
