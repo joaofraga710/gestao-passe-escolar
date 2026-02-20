@@ -11,6 +11,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Render/proxy environments forward client IPs via X-Forwarded-For.
+app.set('trust proxy', 1);
+
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')) {
