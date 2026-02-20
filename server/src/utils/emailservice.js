@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -46,4 +46,4 @@ const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendPdfByEmail };
+export { sendPdfByEmail };

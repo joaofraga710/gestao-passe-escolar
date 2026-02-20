@@ -1,7 +1,7 @@
 import express from 'express';
 import { getStudents, getStudent, addStudent, editStudent, approveStudentCard, issueStudentCard, getIssuedIds, getIssuedPaged } from '../controllers/studentsController.js';
 import { verifyToken } from '../middleware/auth.js';
-import { sendPdfByEmail } from '../utils/emailservice.js';
+import { sendPdfByEmail } from '../utils/emailService.js';
 
 const router = express.Router();
 
