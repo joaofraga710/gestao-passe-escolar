@@ -11,6 +11,10 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error('EMAIL_USER/EMAIL_PASS nao configurados no ambiente.');
+  }
+
   if (!destinationEmail || !pdfBase64) return;
 
   const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");

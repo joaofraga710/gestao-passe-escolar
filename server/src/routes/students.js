@@ -18,12 +18,18 @@ router.post('/:id/issue', issueStudentCard);
 
 router.post('/:id/send-email', async (req, res) => {
   const { studentName, email, pdfBase64 } = req.body;
-  
+
+  if (!email || !pdfBase64) {
+    return res.status(400).json({
+      error: 'Email e PDF (base64) sao obrigatorios.'
+    });
+  }
+
   try {
     await sendPdfByEmail(studentName, email, pdfBase64);
     res.status(200).json({ message: 'E-mail enviado com sucesso!' });
   } catch (error) {
-    console.error(error);
+    console.error('Erro ao enviar e-mail:', error);
     res.status(500).json({ error: 'Erro ao enviar o e-mail.' });
   }
 });
