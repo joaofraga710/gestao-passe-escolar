@@ -1,8 +1,8 @@
-const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+const SENDGRID_ENDPOINT = 'https://api.sendgrid.com/v3/mail/send';
 
 const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
-  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM) {
-    throw new Error('RESEND_API_KEY/RESEND_FROM nao configurados no ambiente.');
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM) {
+    throw new Error('SENDGRID_API_KEY/SENDGRID_FROM nao configurados no ambiente.');
   }
 
   if (!destinationEmail || !pdfBase64) return;
@@ -10,9 +10,13 @@ const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
   const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
 
   const mailOptions = {
-    from: process.env.RESEND_FROM,
-    to: [destinationEmail],
-    subject: `📄 Carteirinha Digital - ${studentName}`,
+    personalizations: [
+      {
+        to: [{ email: destinationEmail }],
+        subject: `📄 Carteirinha Digital - ${studentName}`
+      }
+    ],
+    from: { email: process.env.SENDGRID_FROM },
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e4e8; border-radius: 8px; overflow: hidden;">
         <div style="background-color: #003366; padding: 20px; text-align: center;">
@@ -31,23 +35,30 @@ const sendPdfByEmail = async (studentName, destinationEmail, pdfBase64) => {
       {
         filename: `Carteirinha_${studentName.replace(/\s+/g, '_')}.pdf`,
         content: base64Data,
-        content_type: 'application/pdf'
+        type: 'application/pdf'
       }
     ]
   };
 
-  const response = await fetch(RESEND_ENDPOINT, {
+  const payload = {
+    personalizations: mailOptions.personalizations,
+    from: mailOptions.from,
+    content: [{ type: 'text/html', value: mailOptions.html }],
+    attachments: mailOptions.attachments
+  };
+
+  const response = await fetch(SENDGRID_ENDPOINT, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(mailOptions)
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Resend error: ${response.status} ${errorText}`);
+    throw new Error(`SendGrid error: ${response.status} ${errorText}`);
   }
 };
 
